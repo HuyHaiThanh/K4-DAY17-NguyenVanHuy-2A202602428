@@ -182,3 +182,7 @@ Nếu các bạn là giảng viên hoặc reviewer:
 - `Rubric.md`: tiêu chí chấm điểm và bonus
 
 Track này được thiết kế để các bạn không chỉ “dùng agent”, mà còn bắt đầu nghĩ như một người thiết kế **memory system** cho agent production.
+
+## Bản triển khai đã hoàn thành
+
+src/ đã triển khai offline agents, persistent profile, compact, benchmark và test. Xem [REPORT.md](REPORT.md) để chạy trên Windows, đọc kết quả và giới hạn; [IMPLEMENTATION_REVIEW.md](IMPLEMENTATION_REVIEW.md) ghi review/phản biện theo giai đoạn. Các đoạn mô tả scaffold phía trên là đề bài gốc.

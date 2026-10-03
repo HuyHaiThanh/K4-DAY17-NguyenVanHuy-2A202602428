@@ -20,3 +20,8 @@
 - Counterargument: substring recall can reward echoed facts and quality is not independent. Baseline may obtain a small nonzero score from facts explicitly embedded in questions. We retain the supplied scoring protocol and disclose it rather than forcing baseline to zero.
 - Failures found and fixed: question text overwrote name; joke overwrote profession; comma-separated interests lost AI; later interests replaced earlier ones.
 - Validation: 7 behavioral tests passed, including both full datasets, restart, user isolation, correction/noise and long-context savings.
+
+## Stage 5 — Final review and submission
+- Review: report distinguishes token estimates, recall and quality proxy; records Windows commands and live scope. READMEs identify completed implementation.
+- Counterargument: perfect small-dataset recall is not production readiness; semantic summaries, concurrent writes, preference deletion and live usage accounting remain documented limitations.
+- Validation: 7 tests passed; two clean benchmark runs identical; git diff --check passed. Submission targets origin/main, not upstream.
