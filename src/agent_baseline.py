@@ -45,6 +45,8 @@ class BaselineAgent:
         if thread_id in self.owners and self.owners[thread_id] != user_id:
             raise ValueError('Thread belongs to another user')
         self.owners[thread_id] = user_id
+        if self.langchain_agent is not None and not self.force_offline:
+            return self._reply_live(user_id, thread_id, message)
         return self._reply_offline(thread_id, message)
 
     def token_usage(self, thread_id: str) -> int:
@@ -72,15 +74,11 @@ class BaselineAgent:
         state = self.sessions.setdefault(thread_id, SessionState())
         state.messages.append({'role': 'user', 'content': message})
         prompt_tokens = sum(estimate_tokens(m['content']) for m in state.messages)
-        if self.langchain_agent is None:
-            facts = {}
-            for m in state.messages:
-                if m['role'] == 'user':
-                    facts.update(extract_profile_updates(m['content']))
-            answer = answer_from_facts(message, facts)
-        else:
-            result = self.langchain_agent.invoke([(m['role'], m['content']) for m in state.messages])
-            answer = result.content if isinstance(result.content, str) else str(result.content)
+        facts = {}
+        for m in state.messages:
+            if m['role'] == 'user':
+                facts.update(extract_profile_updates(m['content']))
+        answer = answer_from_facts(message, facts)
         state.messages.append({'role': 'assistant', 'content': answer})
         tokens = estimate_tokens(answer)
         state.token_usage += tokens
@@ -99,4 +97,13 @@ class BaselineAgent:
         # No remote credentials means the scaffold's deterministic offline path.
         if model.provider != 'ollama' and not model.api_key:
             return None
-        return build_chat_model(model)
+        from live_runtime import LiveRuntime
+        return LiveRuntime(build_chat_model(model), self.config)
+
+    def _reply_live(self, user_id: str, thread_id: str, message: str) -> dict:
+        result = self.langchain_agent.reply(user_id, thread_id, message)
+        state = self.sessions.setdefault(thread_id, SessionState())
+        state.messages.extend([{'role': 'user', 'content': message}, {'role': 'assistant', 'content': result['answer']}])
+        state.token_usage += result['agent_tokens']
+        state.prompt_tokens_processed += result['prompt_tokens']
+        return result

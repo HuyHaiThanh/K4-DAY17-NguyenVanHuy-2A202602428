@@ -49,6 +49,9 @@ def build_chat_model(config: ProviderConfig):
     kwargs = {'model': config.model_name, 'temperature': config.temperature}
     if config.api_key:
         kwargs['api_key'] = config.api_key
+    if provider == 'openrouter' and not config.base_url:
+        from langchain_openrouter import ChatOpenRouter
+        return ChatOpenRouter(**kwargs)
     if provider in {'openai', 'custom', 'openrouter'}:
         from langchain_openai import ChatOpenAI
         if provider == 'custom' and not config.base_url:

@@ -71,7 +71,8 @@ def run_agent_benchmark(agent_name: str, agent, conversations: list[dict[str, An
             threads.append(fresh)
             answer = agent.reply(c['user_id'], fresh, question['question'])['answer']
             recall.append(recall_points(answer, question['expected_contains']))
-            quality.append(heuristic_quality(answer, question['expected_contains']))
+            judge = getattr(agent, 'quality_judge', None)
+            quality.append(judge.score(question['question'], answer, question['expected_contains']) if judge else heuristic_quality(answer, question['expected_contains']))
     return BenchmarkRow(agent_name, sum(agent.token_usage(t) for t in threads), sum(agent.prompt_token_usage(t) for t in threads), sum(recall) / len(recall) if recall else 0, sum(quality) / len(quality) if quality else 0, size() - before, sum(agent.compaction_count(t) for t in threads))
 
 
@@ -102,15 +103,40 @@ def main() -> None:
     - Compactions
     """
 
+    import argparse
+    parser = argparse.ArgumentParser(description='Compare memory agents offline or with configured live models.')
+    parser.add_argument('--live', action='store_true', help='Use configured LLM; performs model API calls.')
+    parser.add_argument('--judge', action='store_true', help='Use configured judge model for semantic quality; requires --live.')
+    args = parser.parse_args()
+    if args.judge and not args.live:
+        parser.error('--judge requires --live')
     config = load_config()
+    judge = None
+    if args.judge:
+        from quality_judge import QualityJudge
+        from model_provider import build_chat_model
+        judge = QualityJudge(build_chat_model(config.judge_model))
     for title, filename in [('Standard Benchmark', 'conversations.json'), ('Long-Context Stress Benchmark', 'advanced_long_context.json')]:
         data = load_conversations(config.data_dir / filename)
         with tempfile.TemporaryDirectory(prefix='memory-lab-') as directory:
             isolated = replace(config, state_dir=Path(directory))
-            agents = [('Baseline', BaselineAgent(isolated, force_offline=True)), ('Advanced', AdvancedAgent(isolated, force_offline=True))]
+            agents = [('Baseline', BaselineAgent(isolated, force_offline=not args.live)), ('Advanced', AdvancedAgent(isolated, force_offline=not args.live))]
+            for name, agent in agents:
+                if args.live and agent.langchain_agent is None:
+                    parser.error('Live mode requires configured credentials (or Ollama). No offline fallback in --live benchmark.')
+                agent.quality_judge = judge
             rows = [run_agent_benchmark(name, agent, data, isolated) for name, agent in agents]
             print('\n' + title + '\n' + format_rows(rows))
-    print('\nOffline deterministic benchmark; tokens are estimates; quality is a recall/concision proxy. Training and recall turns are both included.')
+            if args.live:
+                for name, agent in agents:
+                    totals = agent.langchain_agent.totals.values()
+                    print(f'{name} summarization overhead (estimated): input={sum(t["aux_prompt"] for t in totals)}, output={sum(t["aux_output"] for t in totals)}')
+    if args.live:
+        print('\nLive benchmark: SDK usage when supplied, otherwise estimates. Main agent costs exclude summary/judge overhead. Quality: ' + ('semantic judge' if judge else 'heuristic proxy') + '.')
+        if judge:
+            print(f'Judge calls: {judge.calls}; separate input={judge.prompt_tokens}, output={judge.output_tokens}; estimates_used={judge.usage_is_estimated}.')
+    else:
+        print('\nOffline deterministic benchmark; tokens are estimates; quality is a recall/concision proxy. Training and recall turns are both included.')
 
 
 if __name__ == "__main__":

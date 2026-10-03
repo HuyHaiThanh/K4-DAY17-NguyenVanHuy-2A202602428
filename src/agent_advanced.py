@@ -47,6 +47,8 @@ class AdvancedAgent:
         if thread_id in self.owners and self.owners[thread_id] != user_id:
             raise ValueError('Thread belongs to another user')
         self.owners[thread_id] = user_id
+        if self.langchain_agent is not None and not self.force_offline:
+            return self._reply_live(user_id, thread_id, message)
         return self._reply_offline(user_id, thread_id, message)
 
     def token_usage(self, thread_id: str) -> int:
@@ -59,6 +61,8 @@ class AdvancedAgent:
         return self.profile_store.file_size(user_id)
 
     def compaction_count(self, thread_id: str) -> int:
+        if self.langchain_agent is not None and not self.force_offline:
+            return self.langchain_agent.totals[thread_id]['compactions']
         return self.compact_memory.compaction_count(thread_id)
 
     def _reply_offline(self, user_id: str, thread_id: str, message: str) -> dict[str, Any]:
@@ -77,14 +81,7 @@ class AdvancedAgent:
         self.decaying_profile.observe(user_id, self.profile_policy.accepted_updates(message))
         self.compact_memory.append(thread_id, 'user', message)
         prompt_tokens = self._estimate_prompt_context_tokens(user_id, thread_id)
-        if self.langchain_agent is None:
-            answer = self._offline_response(user_id, thread_id, message)
-        else:
-            context = self.compact_memory.context(thread_id)
-            prompt = [('system', self.decaying_profile.context_text(user_id) + '\n' + context['summary'])]
-            prompt.extend((m['role'], m['content']) for m in context['messages'])
-            result = self.langchain_agent.invoke(prompt)
-            answer = result.content if isinstance(result.content, str) else str(result.content)
+        answer = self._offline_response(user_id, thread_id, message)
         self.compact_memory.append(thread_id, 'assistant', answer)
         tokens = estimate_tokens(answer)
         self.thread_tokens[thread_id] = self.token_usage(thread_id) + tokens
@@ -135,8 +132,17 @@ class AdvancedAgent:
         # No remote credentials means the scaffold's deterministic offline path.
         if model.provider != 'ollama' and not model.api_key:
             return None
-        return build_chat_model(model)
+        from live_runtime import LiveRuntime
+        return LiveRuntime(build_chat_model(model), self.config, advanced=self)
 
     def memory_storage_size(self, user_id: str) -> int:
         """Profile plus decay sidecar bytes, for full benchmark accounting."""
         return self.decaying_profile.storage_size(user_id)
+
+    def _reply_live(self, user_id: str, thread_id: str, message: str) -> dict:
+        self.last_profile_decisions = self.profile_policy.evaluate(message)
+        self.decaying_profile.observe(user_id, self.profile_policy.accepted_updates(message))
+        result = self.langchain_agent.reply(user_id, thread_id, message)
+        self.thread_tokens[thread_id] = self.token_usage(thread_id) + result['agent_tokens']
+        self.thread_prompt_tokens[thread_id] = self.prompt_token_usage(thread_id) + result['prompt_tokens']
+        return result

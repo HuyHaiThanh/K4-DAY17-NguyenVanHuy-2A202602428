@@ -46,7 +46,7 @@ def load_config(base_dir: Path | None = None) -> LabConfig:
         keys = {'openai': 'OPENAI', 'custom': 'CUSTOM', 'gemini': 'GEMINI', 'anthropic': 'ANTHROPIC', 'ollama': 'OLLAMA', 'openrouter': 'OPENROUTER'}
         defaults = {'openai': 'gpt-4o-mini', 'custom': 'local-model', 'gemini': 'gemini-2.5-flash', 'anthropic': 'claude-sonnet-4-5', 'ollama': 'llama3.2', 'openrouter': 'openai/gpt-4o-mini'}
         key = keys[provider]
-        return ProviderConfig(provider, os.getenv(prefix + 'MODEL', os.getenv('LLM_MODEL', defaults[provider])), float(os.getenv(prefix + 'TEMPERATURE', '0')), os.getenv(key + '_API_KEY'), os.getenv(key + '_BASE_URL'))
+        return ProviderConfig(provider, os.getenv(prefix + 'MODEL') or (os.getenv('LLM_MODEL') if provider == normalize_provider(os.getenv('LLM_PROVIDER', 'openai')) else None) or defaults[provider], float(os.getenv(prefix + 'TEMPERATURE', '0')), os.getenv(prefix + 'API_KEY') or os.getenv(key + '_API_KEY'), os.getenv(prefix + 'BASE_URL') or os.getenv(key + '_BASE_URL'))
     threshold = int(os.getenv('COMPACT_THRESHOLD_TOKENS', '1000'))
     keep = int(os.getenv('COMPACT_KEEP_MESSAGES', '4'))
     if threshold <= 0 or keep < 1:
