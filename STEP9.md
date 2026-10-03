@@ -19,11 +19,11 @@ Sau “Mình đang ở Huế”, câu “Có lẽ mình đang ở Hà Nội” k
 
 Test ablation dùng cùng input với ngưỡng 0.8 và 0.4: chính sách 0.8 giữ Huế; chính sách dễ dãi 0.4 ghi Hà Nội từ câu chưa chắc chắn. Đây là bằng chứng gate có tác động đến ghi memory, không chỉ thêm metadata. Test ngưỡng biên và ngưỡng không hợp lệ; test preference “có ví dụ” để không nhầm với câu giả định.
 
-Chạy: python -m pytest src -v. Hiện 60 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
+Chạy: python -m pytest src -v. Hiện 65 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
 
 ## Tác động và phản biện
 
-Gate giảm nguy cơ profile bị nhiễm fact không chắc chắn, giúp giữ recall đúng khi có input gây nhiễu. Các dataset gốc vẫn đạt 100% recall Advanced; stress prompt tokens là 11.784 so với 22.300 Baseline, giảm khoảng 47,2%, compact 4 lần. Gate chạy bằng quy tắc local, không gọi LLM bổ sung. Không quy mức tiết kiệm prompt này cho gate: lợi ích đó chủ yếu từ compact.
+Gate giảm nguy cơ profile bị nhiễm fact không chắc chắn, giúp giữ recall đúng khi có input gây nhiễu. Các dataset gốc vẫn đạt 100% recall Advanced; stress prompt tokens là 11.937 so với 22.423 Baseline, giảm khoảng 46,8%, compact 4 lần. Gate chạy bằng quy tắc local, không gọi LLM bổ sung. Không quy mức tiết kiệm prompt này cho gate: lợi ích đó chủ yếu từ compact.
 
 Score là trọng số heuristic, không phải xác suất được hiệu chuẩn. Gate có thể từ chối fact đúng nhưng diễn đạt dè dặt, hoặc chấp nhận fact sai được khẳng định rõ ràng. Câu chứa lẫn evidence mâu thuẫn được xử lý thận trọng ở phạm vi câu. Chưa có xác minh ngoài ngôn ngữ hoặc confidence học từ dữ liệu.
 

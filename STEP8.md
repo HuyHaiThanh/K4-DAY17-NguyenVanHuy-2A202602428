@@ -2,32 +2,46 @@
 
 ## 1. Vì sao Advanced có recall tốt hơn Baseline?
 
-Baseline chỉ giữ lịch sử theo thread_id. Khi câu hỏi recall được hỏi ở thread mới, nó không còn lịch sử các phiên trước. Advanced lưu các facts ổn định vào User.md theo từng người dùng và đưa hồ sơ này vào context, nên vẫn nhớ tên, nơi ở, nghề nghiệp và sở thích qua phiên mới. Cập nhật theo field giúp thay nơi ở/nghề cũ bằng thông tin đính chính, thay vì giữ cả hai như facts hiện tại.
+Standard Benchmark cho recall Baseline 3,6% và Advanced 100%; stress lần lượt 0% và 100%. Baseline có memory growth 0 byte, Advanced lần lượt 957 và 647 byte.
 
-Trong Standard Benchmark, recall của Baseline là 3,6%, Advanced là 100%; trong stress benchmark, lần lượt là 0% và 100%. Điểm 3,6% của Baseline không chứng minh nhớ dài hạn: một câu hỏi chứa sẵn dữ kiện trong input nên phép chấm substring cho điểm một phần.
+Advanced trích facts, qua confidence gate rồi lưu theo field vào User.md; _offline_response() đọc các facts còn active từ file ở thread mới. Baseline chỉ có lịch sử theo thread_id nên không nhớ phiên trước. Bộ đếm metadata phục vụ decay cũng được tính vào memory growth.
+
+Giới hạn: Baseline 3,6% đến từ dữ kiện có sẵn trong một recall input, không chứng minh nhớ dài hạn; 100% là recall substring trên dataset này, không chứng minh hiểu mọi câu tiếng Việt.
 
 ## 2. Vì sao Advanced có thể tốn hơn ở hội thoại ngắn?
 
-Advanced phải mang thêm User.md vào prompt mỗi lượt. Khi lịch sử còn ngắn, chi phí bổ sung này lớn hơn lợi ích từ nén lịch sử; với ngưỡng mặc định 1.000 token, Standard Benchmark chưa kích hoạt compact.
+Ở Standard, Agent tokens only là 1.521 của Baseline và 1.664 của Advanced; Prompt tokens processed là 14.865 và 21.732, Advanced tăng khoảng 46,2%. Compactions của cả hai bằng 0 ở ngưỡng mặc định 1.000.
 
-Prompt tokens processed của Baseline là 14.742, Advanced là 21.582, tăng khoảng 46,4%. Agent tokens only cũng tăng từ 1.521 lên 1.664, vì Advanced trả lời được nhiều thông tin đã nhớ hơn. Vì vậy, recall tốt hơn đi kèm chi phí context lớn hơn trong bộ hội thoại ngắn này.
+Advanced đưa active profile vào prompt mỗi lượt, còn lịch sử chưa đủ dài để compact bù lại chi phí bổ sung. Output tăng do Advanced trả lời được thêm facts đã nhớ; thao tác ghi file không trực tiếp sinh token LLM trong offline.
+
+Giới hạn: hai agent có cùng output token cũng không chứng minh persistent write bị bỏ qua. Agent tokens only đo output; việc profile được đưa vào context cần kiểm tra bằng prompt load và test persistence/recall.
 
 ## 3. Vì sao compact giúp Advanced có lợi thế ở hội thoại dài?
 
-Baseline giữ toàn bộ lịch sử và xử lý lại context tích lũy mỗi lượt. Advanced nén phần lịch sử cũ thành summary có giới hạn, giữ các message gần nhất cùng hồ sơ người dùng. Cách này giảm lượng nội dung phải xử lý lặp lại khi cuộc hội thoại dài.
+Ở stress, Baseline xử lý 22.423 prompt tokens, Advanced 11.937 (giảm khoảng 46,8%) và compact 4 lần. Output tokens là 281 và 312: lợi ích chủ yếu nằm ở Prompt tokens processed. Trace từng lượt cho thấy prompt của Baseline tăng từ 187 ở lượt đầu lên 2.537 ở lượt 16.
 
-Trong Long-Context Stress Benchmark, Advanced compact 4 lần. Prompt tokens processed giảm từ 22.300 của Baseline xuống 11.784 của Advanced, tức khoảng 47,2%, trong khi Advanced vẫn đạt 100% recall các facts được kiểm tra. Agent tokens only tăng từ 281 lên 312: lợi ích chính nằm ở prompt load, không phải độ dài câu trả lời.
+Compact hợp nhất summary cũ với facts/correction và giữ recent messages thay vì kéo toàn bộ lịch sử mỗi lượt. Phép thử riêng trên cùng dữ liệu, cùng recall protocol và state sạch cho kết quả:
 
-Kết quả này chưa chứng minh summary giữ được mọi chi tiết cũ: các câu recall của dataset chủ yếu kiểm tra profile. Summary trích đoạn có thể làm mất nội dung tạm thời; đây là đánh đổi giữa chi phí token và độ đầy đủ của ngữ cảnh.
+| Stress ablation | Prompt tokens processed | Agent tokens only | Recall | Memory growth bytes | Compactions |
+|---|---:|---:|---:|---:|---:|
+| Baseline | 22.423 | 281 | 0% | 0 | 0 |
+| Advanced compact ON | 11.937 | 312 | 100% | 647 | 4 |
+| Advanced compact OFF | 23.337 | 312 | 100% | 647 | 0 |
 
-## 4. File memory tăng trưởng ra sao và có rủi ro gì?
+Tắt compact bằng config copy có ngưỡng 10^12 làm prompt cost Advanced tăng gần về mức Baseline, còn cao hơn vì profile overhead. Bật compact giảm khoảng 48,8% so với chính Advanced không compact, trong khi output/recall/growth không đổi. Config mặc định không bị sửa.
 
-Memory growth tổng của Advanced là 957 byte ở Standard Benchmark (287 byte User.md + 670 byte metadata) và 647 byte ở stress benchmark (207 byte User.md + 440 byte metadata); Baseline là 0 byte vì không có profile bền vững. Hai suite dùng state sạch riêng, nên đây là mức tăng trong từng lần chạy, không phải tổng cộng của cùng một hồ sơ.
+Giới hạn: summary có giới hạn vẫn có thể mất facts/excerpts ít ưu tiên; recall dataset chủ yếu đo profile. Kết quả và trace nằm trong [ablation_results.txt](ablation_results.txt), chạy lại bằng python src/benchmark_ablation.py.
 
-User.md lưu theo field và cập nhật fact hiện có, nên việc lặp lại cùng fact không làm file dài thêm như nối toàn bộ hội thoại. Tuy nhiên, tập sở thích hoặc số người dùng tăng vẫn làm tổng memory tăng. Profile dài hơn cũng làm prompt tốn hơn nếu đọc toàn bộ ở mỗi lượt.
+## 4. File memory tăng trưởng ra sao và rủi ro gì?
 
-Rủi ro khác là lưu nhầm câu hỏi, câu đùa hoặc dữ kiện đã bị phủ định thành fact; giữ thông tin lỗi thời; hoặc làm mất chi tiết khi compact. Bản triển khai có test cho correction và nhiễu trong dữ liệu, nhưng regex extraction chưa tổng quát cho mọi câu tiếng Việt. Confidence threshold bằng quy tắc đã được triển khai ở bước 9 để lọc facts chưa chắc chắn; hướng cải thiện tiếp theo là xác nhận khi facts mâu thuẫn, chọn lọc profile theo câu hỏi và hiệu chuẩn confidence. Memory decay theo thời gian/số lần xác nhận cũng đã được triển khai ở bước 9.
+Standard tăng 957 byte (287 User.md + 670 metadata); stress tăng 647 byte (207 User.md + 440 metadata) và compact 4 lần. Baseline không ghi profile, growth bằng 0. Hai suite độc lập nên không cộng growth thành kích thước của một hồ sơ.
 
-## Giới hạn khi đọc số liệu
+Upsert theo field tránh phình file chỉ vì lặp lại cùng fact; correction thay giá trị cũ. Compact giảm lịch sử trong prompt, không xóa dữ liệu trên đĩa. Decay giảm ưu tiên truy xuất và cũng không tự thu nhỏ User.md; sidecar còn tăng chi phí lưu trữ.
 
-Đây là benchmark offline deterministic. Token được ước lượng bằng ceil(len(text.strip()) / 4), không phải token tính phí của provider. Response quality là proxy từ recall và độ ngắn gọn, không phải đánh giá ngữ nghĩa độc lập bằng LLM judge. Kết quả đầy đủ nằm trong [benchmark_results.txt](benchmark_results.txt).
+Rủi ro đã kiểm chứng bằng case nhiễu: câu hỏi, câu đùa hoặc “có lẽ mình ở Hà Nội” có thể làm sai location nếu ghi quá dễ dãi. Confidence gate 0.8 ngăn case uncertain overwrite; gate 0.4 trong test ablation chấp nhận nó. Decay có thể bỏ khỏi prompt fact vẫn đúng, còn regex có thể lọc nhầm câu hợp lệ. STEP9.md mô tả bonus, cơ chế, bằng chứng và rủi ro.
+
+## Phương pháp và output
+
+Một thread recall mới cho mỗi conversation, dùng chung cho các câu hỏi recall của conversation đó và cùng ID protocol ở cả hai agent. Main benchmark tạo state tạm sạch riêng mỗi suite và cố định clock offline, nên không cần xóa state cá nhân; hai lần chạy cho cùng output.
+
+Tokens offline là ceil(len(text.strip())/4); cả training và recall đều tính. Quality là proxy recall/concision dùng cùng công thức cho hai agent. Memory growth gồm profile và metadata; không phải tốc độ byte/giây. Dữ liệu data/ giữ nguyên nội dung so với scaffold gốc. Kết quả đầy đủ: [benchmark_results.txt](benchmark_results.txt).

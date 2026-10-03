@@ -1,0 +1,415 @@
+Compact ablation — original stress input, clean isolated state, fixed offline clock
+| Agent                |   Agent tokens only |   Prompt tokens processed | Cross-session recall   | Response quality   |   Memory growth (bytes) |   Compactions |
+|----------------------|---------------------|---------------------------|------------------------|--------------------|-------------------------|---------------|
+| Baseline             |                 281 |                     22423 | 0.0%                   | 0.0%               |                       0 |             0 |
+| Advanced compact ON  |                 312 |                     11937 | 100.0%                 | 100.0%             |                     647 |             4 |
+| Advanced compact OFF |                 312 |                     23337 | 100.0%                 | 100.0%             |                     647 |             0 |
+Original compact threshold is unchanged: 1000
+Per-turn trace (JSON):
+{
+  "Advanced compact OFF": [
+    {
+      "agent_tokens": 29,
+      "input_sha256": "d68d58ee35f7fb959bb33597bde83f78ca62897d81f7054007f29d6e4d334c25",
+      "prompt_tokens": 224,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 5,
+      "input_sha256": "e076fc12047d6429b06e8be727da9b4c714bc7bbe1aafcaae5638fa5c10dd13d",
+      "prompt_tokens": 405,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "f9a6510fc128118b2734d40e1ac0d66cbdcf27a20ead294151ed8b98cd1fa950",
+      "prompt_tokens": 560,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 7,
+      "input_sha256": "d34a360d4f70267686b52001e21ae1e0d582bc6066d4a46df3bb179ac5d7fb58",
+      "prompt_tokens": 733,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "b4329bfe240aa65beae4e1aa93c46f100a324917cd8487b5a20b1b9d6e3b746c",
+      "prompt_tokens": 900,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 7,
+      "input_sha256": "e5608fcf8551dc4073bc02f618cca6bb92fdb84e842141b8e6e54388efab1d56",
+      "prompt_tokens": 1071,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 13,
+      "input_sha256": "b9d63ad47ba7cb7d4565057bed143a551c31d52dd5fcbc55535e07f3be1340bc",
+      "prompt_tokens": 1229,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "47a748409194fd96800b152212c98a5475198b1c6365ab248b14a4857944b961",
+      "prompt_tokens": 1388,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 25,
+      "input_sha256": "5cc8b3f482b7ab1830dbf06527b7ea74e8ba2702f27f0daf5004de927a6d78ae",
+      "prompt_tokens": 1517,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 12,
+      "input_sha256": "36931aed7110189a897a7a7d4c643ab9818c334677fb7545b74b481c90178af3",
+      "prompt_tokens": 1664,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "4cd3c83da4deab7b68e6772c5c0cf57995ff1ff3cd7c983bf4f2f172e6f2e791",
+      "prompt_tokens": 1811,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 17,
+      "input_sha256": "f31d45e52cbe4fe3d27099e08ee5596d13ca089308e699722a6012d3b417fa18",
+      "prompt_tokens": 1986,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "5d5fbccc7a80b5c6d431747524c6d617e0ba034040e42c0ac57d9a252644eb90",
+      "prompt_tokens": 2150,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 10,
+      "input_sha256": "addfefd24a52aa0fd31e1202cc6a5281ca995385a644a975a6b4b2f4e679b703",
+      "prompt_tokens": 2290,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "ef7ffa1459d0c708368502c81dba8b216905406aaac9fb0f21aa572fcc03b4ca",
+      "prompt_tokens": 2457,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 30,
+      "input_sha256": "9990145ab20097783444c2dc6cc0c9cedb5bf065876be1ce8c1e462df9c8f51a",
+      "prompt_tokens": 2589,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 30,
+      "input_sha256": "d6649092f8ffacca9ddb703eec5bb8757fec3e1008756ee939f5c8a20885ba7f",
+      "prompt_tokens": 74,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 12,
+      "input_sha256": "8571742644a1c351dc898cfb3f5cad7d35afcfea0cefae13f7a52b52f21e555b",
+      "prompt_tokens": 129,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 19,
+      "input_sha256": "7c1dd76e10d9859ef3699a81a7d1b7f134354cd1f0847386f2ccbbbbd456a2fd",
+      "prompt_tokens": 160,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    }
+  ],
+  "Advanced compact ON": [
+    {
+      "agent_tokens": 29,
+      "input_sha256": "d68d58ee35f7fb959bb33597bde83f78ca62897d81f7054007f29d6e4d334c25",
+      "prompt_tokens": 224,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 5,
+      "input_sha256": "e076fc12047d6429b06e8be727da9b4c714bc7bbe1aafcaae5638fa5c10dd13d",
+      "prompt_tokens": 405,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "f9a6510fc128118b2734d40e1ac0d66cbdcf27a20ead294151ed8b98cd1fa950",
+      "prompt_tokens": 560,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 7,
+      "input_sha256": "d34a360d4f70267686b52001e21ae1e0d582bc6066d4a46df3bb179ac5d7fb58",
+      "prompt_tokens": 733,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "b4329bfe240aa65beae4e1aa93c46f100a324917cd8487b5a20b1b9d6e3b746c",
+      "prompt_tokens": 900,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 7,
+      "input_sha256": "e5608fcf8551dc4073bc02f618cca6bb92fdb84e842141b8e6e54388efab1d56",
+      "prompt_tokens": 580,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 13,
+      "input_sha256": "b9d63ad47ba7cb7d4565057bed143a551c31d52dd5fcbc55535e07f3be1340bc",
+      "prompt_tokens": 738,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "47a748409194fd96800b152212c98a5475198b1c6365ab248b14a4857944b961",
+      "prompt_tokens": 897,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 25,
+      "input_sha256": "5cc8b3f482b7ab1830dbf06527b7ea74e8ba2702f27f0daf5004de927a6d78ae",
+      "prompt_tokens": 1026,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 12,
+      "input_sha256": "36931aed7110189a897a7a7d4c643ab9818c334677fb7545b74b481c90178af3",
+      "prompt_tokens": 757,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "4cd3c83da4deab7b68e6772c5c0cf57995ff1ff3cd7c983bf4f2f172e6f2e791",
+      "prompt_tokens": 904,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 17,
+      "input_sha256": "f31d45e52cbe4fe3d27099e08ee5596d13ca089308e699722a6012d3b417fa18",
+      "prompt_tokens": 656,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "5d5fbccc7a80b5c6d431747524c6d617e0ba034040e42c0ac57d9a252644eb90",
+      "prompt_tokens": 820,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 10,
+      "input_sha256": "addfefd24a52aa0fd31e1202cc6a5281ca995385a644a975a6b4b2f4e679b703",
+      "prompt_tokens": 960,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "ef7ffa1459d0c708368502c81dba8b216905406aaac9fb0f21aa572fcc03b4ca",
+      "prompt_tokens": 641,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 30,
+      "input_sha256": "9990145ab20097783444c2dc6cc0c9cedb5bf065876be1ce8c1e462df9c8f51a",
+      "prompt_tokens": 773,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 30,
+      "input_sha256": "d6649092f8ffacca9ddb703eec5bb8757fec3e1008756ee939f5c8a20885ba7f",
+      "prompt_tokens": 74,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 12,
+      "input_sha256": "8571742644a1c351dc898cfb3f5cad7d35afcfea0cefae13f7a52b52f21e555b",
+      "prompt_tokens": 129,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 19,
+      "input_sha256": "7c1dd76e10d9859ef3699a81a7d1b7f134354cd1f0847386f2ccbbbbd456a2fd",
+      "prompt_tokens": 160,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    }
+  ],
+  "Baseline": [
+    {
+      "agent_tokens": 29,
+      "input_sha256": "d68d58ee35f7fb959bb33597bde83f78ca62897d81f7054007f29d6e4d334c25",
+      "prompt_tokens": 187,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 5,
+      "input_sha256": "e076fc12047d6429b06e8be727da9b4c714bc7bbe1aafcaae5638fa5c10dd13d",
+      "prompt_tokens": 368,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "f9a6510fc128118b2734d40e1ac0d66cbdcf27a20ead294151ed8b98cd1fa950",
+      "prompt_tokens": 523,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 4,
+      "input_sha256": "d34a360d4f70267686b52001e21ae1e0d582bc6066d4a46df3bb179ac5d7fb58",
+      "prompt_tokens": 696,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "b4329bfe240aa65beae4e1aa93c46f100a324917cd8487b5a20b1b9d6e3b746c",
+      "prompt_tokens": 860,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 4,
+      "input_sha256": "e5608fcf8551dc4073bc02f618cca6bb92fdb84e842141b8e6e54388efab1d56",
+      "prompt_tokens": 1031,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 13,
+      "input_sha256": "b9d63ad47ba7cb7d4565057bed143a551c31d52dd5fcbc55535e07f3be1340bc",
+      "prompt_tokens": 1178,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "47a748409194fd96800b152212c98a5475198b1c6365ab248b14a4857944b961",
+      "prompt_tokens": 1337,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 25,
+      "input_sha256": "5cc8b3f482b7ab1830dbf06527b7ea74e8ba2702f27f0daf5004de927a6d78ae",
+      "prompt_tokens": 1465,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 12,
+      "input_sha256": "36931aed7110189a897a7a7d4c643ab9818c334677fb7545b74b481c90178af3",
+      "prompt_tokens": 1612,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "4cd3c83da4deab7b68e6772c5c0cf57995ff1ff3cd7c983bf4f2f172e6f2e791",
+      "prompt_tokens": 1759,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 17,
+      "input_sha256": "f31d45e52cbe4fe3d27099e08ee5596d13ca089308e699722a6012d3b417fa18",
+      "prompt_tokens": 1934,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "5d5fbccc7a80b5c6d431747524c6d617e0ba034040e42c0ac57d9a252644eb90",
+      "prompt_tokens": 2098,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 10,
+      "input_sha256": "addfefd24a52aa0fd31e1202cc6a5281ca995385a644a975a6b4b2f4e679b703",
+      "prompt_tokens": 2238,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "ef7ffa1459d0c708368502c81dba8b216905406aaac9fb0f21aa572fcc03b4ca",
+      "prompt_tokens": 2405,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 30,
+      "input_sha256": "9990145ab20097783444c2dc6cc0c9cedb5bf065876be1ce8c1e462df9c8f51a",
+      "prompt_tokens": 2537,
+      "thread_id": "conversation:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 16,
+      "input_sha256": "d6649092f8ffacca9ddb703eec5bb8757fec3e1008756ee939f5c8a20885ba7f",
+      "prompt_tokens": 28,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 10,
+      "input_sha256": "8571742644a1c351dc898cfb3f5cad7d35afcfea0cefae13f7a52b52f21e555b",
+      "prompt_tokens": 69,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    },
+    {
+      "agent_tokens": 10,
+      "input_sha256": "7c1dd76e10d9859ef3699a81a7d1b7f134354cd1f0847386f2ccbbbbd456a2fd",
+      "prompt_tokens": 98,
+      "thread_id": "recall:stress-01",
+      "user_id": "dungct_stress"
+    }
+  ]
+}

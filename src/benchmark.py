@@ -66,9 +66,10 @@ def run_agent_benchmark(agent_name: str, agent, conversations: list[dict[str, An
         threads.append(thread)
         for message in c['turns']:
             agent.reply(c['user_id'], thread, message)
-        for index, question in enumerate(c['recall_questions']):
-            fresh = f'recall:{c["id"]}:{index}'
+        fresh = 'recall:' + c['id']
+        if c['recall_questions']:
             threads.append(fresh)
+        for question in c['recall_questions']:
             answer = agent.reply(c['user_id'], fresh, question['question'])['answer']
             recall.append(recall_points(answer, question['expected_contains']))
             judge = getattr(agent, 'quality_judge', None)
@@ -125,6 +126,9 @@ def main() -> None:
                 if args.live and agent.langchain_agent is None:
                     parser.error('Live mode requires configured credentials (or Ollama). No offline fallback in --live benchmark.')
                 agent.quality_judge = judge
+                if not args.live and hasattr(agent, 'decaying_profile'):
+                    # Freeze age metadata and retrieval priorities for deterministic offline runs.
+                    agent.decaying_profile.clock = lambda: 1700000000
             rows = [run_agent_benchmark(name, agent, data, isolated) for name, agent in agents]
             print('\n' + title + '\n' + format_rows(rows))
             if args.live:

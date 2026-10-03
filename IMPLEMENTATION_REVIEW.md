@@ -66,3 +66,9 @@
 - Review: COMPLETION.md maps all nine Guide steps to implementation/test evidence; REPORT and STEP8/9 updated to current metrics (11784 prompt, 4 compactions, 47.2% savings), no stale claim of missing graph/judge. Requirements records tested direct package versions; env example contains no credentials.
 - Counterargument: no remote credentials available, so graph integration is tested with fake models, not remote services; confidence/summaries are bounded heuristic policies and production concurrency remains outside lab scope. Explicitly documented.
 - Validation: 60 passing tests, compiled sources, diff whitespace check, two identical clean offline benchmarks; original scaffold declarations remain covered. Final push targets origin/main.
+
+## User-provided benchmark protocol audit
+- Finding/fix: previous recall thread was per question; supplemental instructions explicitly require one fresh recall thread per conversation. Both agents now use identical conversation/recall ID mapping. Offline benchmark clock is frozen; clean temporary state leaves personal profiles untouched.
+- Evidence: input hashes/order identical across agents; original dataset content hash matches Git scaffold after CRLF normalization. Compact ON/OFF ablation yields 11937/23337 prompt, same output 312, recall 100%, growth 647; default threshold unchanged. Baseline per-turn prompt grows 187 to 2537.
+- Counterargument: output token equality cannot diagnose missing profile writes; prompt and persistence tests are required. Substring recall and quality proxy retain known limits.
+- Validation: 65 tests passed; two clean main outputs identical; data content unchanged; STEP8 rewritten number-first with mechanisms and limits; output artifacts updated.

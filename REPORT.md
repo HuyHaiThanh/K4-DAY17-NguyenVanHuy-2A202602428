@@ -32,14 +32,14 @@ Provider factory hỗ trợ openai/custom/gemini/anthropic/ollama/openrouter; Op
 
 | Suite | Agent | Output tokens | Prompt tokens | Recall | Growth bytes | Compactions |
 |---|---|---:|---:|---:|---:|---:|
-| Standard | Baseline | 1521 | 14742 | 3,6% | 0 | 0 |
-| Standard | Advanced | 1664 | 21582 | 100% | 957 | 0 |
-| Stress | Baseline | 281 | 22300 | 0% | 0 | 0 |
-| Stress | Advanced | 312 | 11784 | 100% | 647 | 4 |
+| Standard | Baseline | 1521 | 14865 | 3,6% | 0 | 0 |
+| Standard | Advanced | 1664 | 21732 | 100% | 957 | 0 |
+| Stress | Baseline | 281 | 22423 | 0% | 0 | 0 |
+| Stress | Advanced | 312 | 11937 | 100% | 647 | 4 |
 
-Token offline là ceil(len(text.strip())/4). Cả training và recall được tính; recall hỏi ngay sau từng conversation, thread mới riêng mỗi question. Score 0/0,5/1 khi không khớp/khớp một phần/khớp tất cả expected_contains. Quality offline là proxy recall/concision. Growth gồm User.md và sidecar decay: Standard 287 + 670 byte; Stress 207 + 440 byte. Metadata không gửi vào prompt.
+Token offline là ceil(len(text.strip())/4). Cả training và recall được tính; recall hỏi ngay sau từng conversation, một thread mới cho mỗi conversation, dùng chung cho các question recall của conversation đó. Score 0/0,5/1 khi không khớp/khớp một phần/khớp tất cả expected_contains. Quality offline là proxy recall/concision. Growth gồm User.md và sidecar decay: Standard 287 + 670 byte; Stress 207 + 440 byte. Metadata không gửi vào prompt.
 
-Advanced tăng recall qua persistent memory. Standard thêm khoảng 46,4% prompt cost vì mang profile mỗi lượt. Stress compact 4 lần, giảm prompt cost khoảng 47,2%. Summary mới giữ facts tốt hơn nên stress metrics khác bản trích đoạn trước đó. Baseline 3,6% đến từ dữ kiện có sẵn trong một recall input, không chứng minh nhớ dài hạn.
+Advanced tăng recall qua persistent memory. Standard thêm khoảng 46,2% prompt cost vì mang profile mỗi lượt. Stress compact 4 lần, giảm prompt cost khoảng 46,8%. Summary mới giữ facts tốt hơn nên stress metrics khác bản trích đoạn trước đó. Baseline 3,6% đến từ dữ kiện có sẵn trong một recall input, không chứng minh nhớ dài hạn.
 
 Live accounting lấy usage_metadata khi SDK trả về, fallback estimator khi không có. Main-agent columns gồm các model calls trong agent/tool loop; summary overhead được in riêng bằng ước lượng. Judge score được validate [0,1]; calls và usage được in riêng, không nhập vào main-agent totals.
 
@@ -51,8 +51,14 @@ Decay lưu value/updated_at/confirmations ở sidecar. Half-life mặc định 3
 
 ## Kiểm chứng và giới hạn
 
-60 test pass, gồm core memory, confidence, decay, repeated compact, scaffold contract, sáu provider factories, actual graph checkpoints/tools/dynamic prompt/LLM middleware với fake models, SDK usage và live CLI có judge. Hai lần offline benchmark state sạch cho kết quả giống nhau.
+65 test pass, gồm core memory, confidence, decay, repeated compact, scaffold contract, sáu provider factories, actual graph checkpoints/tools/dynamic prompt/LLM middleware với fake models, SDK usage và live CLI có judge. Hai lần offline benchmark state sạch cho kết quả giống nhau.
 
 Chưa có credentials remote được cấu hình, nên không gọi API trả phí và không tuyên bố có remote-provider smoke test. Fake models chạy graph thật nhưng không chứng minh chất lượng ngữ nghĩa của LLM thực. Python 3.14.7 hiện phát sinh warning Pydantic từ dependency; không có test failure. requirements.txt ghi phiên bản trực tiếp đã kiểm thử, không phải lock toàn bộ dependency bắc cầu.
 
 Regex/heuristic summary có thể bỏ sót hoặc hiểu sai cách diễn đạt mới; summary nhỏ vẫn mất thông tin. Confidence không xác minh sự thật. Decay có thể bỏ fact vẫn đúng và không xóa lịch sử đang diễn ra. User.md/sidecar replace riêng, chưa có transaction chung hoặc lock đa tiến trình. Live InMemorySaver lưu trong RAM, không phải durable checkpoint database. Những cải tiến production này không phải yêu cầu bài lab. Điểm số/test ẩn do người chấm quyết định.
+
+## Benchmark protocol audit và ablation
+
+Theo hướng dẫn bổ sung, các recall question của một conversation dùng chung một thread recall mới, khác training thread; cả hai agent dùng cùng ID và input order. Offline main dùng clock cố định và state tạm sạch, không đọc/xóa profile cá nhân. Test so sánh hash từng message/question và hash dataset gốc (chuẩn hóa CRLF).
+
+python src/benchmark_ablation.py so sánh Baseline / Advanced compact ON / OFF trên input stress gốc: prompt 22423 / 11937 / 23337; compactions 0 / 4 / 0. Advanced ON/OFF có cùng output 312, recall 100%, growth 647. Config ngưỡng mặc định không đổi. Trace theo lượt chứng minh Baseline prompt tăng từ 187 lên 2537. Xem ablation_results.txt và STEP8.md.
