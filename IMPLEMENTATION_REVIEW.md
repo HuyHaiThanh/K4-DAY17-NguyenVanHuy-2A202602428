@@ -31,3 +31,8 @@
 - Fix: restore original declarations, annotations, dataclass fields and method order; offline fallback without credentials; safe user path and legacy hashed-profile reads; tolerate plain Markdown fact values.
 - Counterargument: hidden tests are unavailable. Snapshot checks establish published declaration compatibility, not arbitrary hidden expectations or production language coverage. Additional helper methods/files remain implementation details.
 - Validation: 11 tests passed, including AST declaration snapshot derived from dc0e2da; benchmark output unchanged; diff whitespace checks passed.
+
+## Guide steps and bonus audit (2026-10-03)
+- Review: steps 1–8 are implemented for offline scope; selected step 9 work is structured fields, correction/conflict handling and rule-based question/noise filtering. Evidence and limits are in STEP9.md.
+- Counterargument: these heuristics overlap core extraction and do not establish a calibrated confidence threshold or decay. No ablation measures incremental bonus gain; no promise of a numeric grade or hidden-test success.
+- Validation: reran full suite: 11 passed; both benchmark tables unchanged. No implementation changes in this audit.
