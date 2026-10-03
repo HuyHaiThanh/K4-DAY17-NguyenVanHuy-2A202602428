@@ -22,11 +22,11 @@ Kết quả này chưa chứng minh summary giữ được mọi chi tiết cũ:
 
 ## 4. File memory tăng trưởng ra sao và có rủi ro gì?
 
-Memory growth của Advanced là 287 byte ở Standard Benchmark và 207 byte ở stress benchmark; Baseline là 0 byte vì không có profile bền vững. Hai suite dùng state sạch riêng, nên đây là mức tăng trong từng lần chạy, không phải tổng cộng của cùng một hồ sơ.
+Memory growth tổng của Advanced là 957 byte ở Standard Benchmark (287 byte User.md + 670 byte metadata) và 647 byte ở stress benchmark (207 byte User.md + 440 byte metadata); Baseline là 0 byte vì không có profile bền vững. Hai suite dùng state sạch riêng, nên đây là mức tăng trong từng lần chạy, không phải tổng cộng của cùng một hồ sơ.
 
 User.md lưu theo field và cập nhật fact hiện có, nên việc lặp lại cùng fact không làm file dài thêm như nối toàn bộ hội thoại. Tuy nhiên, tập sở thích hoặc số người dùng tăng vẫn làm tổng memory tăng. Profile dài hơn cũng làm prompt tốn hơn nếu đọc toàn bộ ở mỗi lượt.
 
-Rủi ro khác là lưu nhầm câu hỏi, câu đùa hoặc dữ kiện đã bị phủ định thành fact; giữ thông tin lỗi thời; hoặc làm mất chi tiết khi compact. Bản triển khai có test cho correction và nhiễu trong dữ liệu, nhưng regex extraction chưa tổng quát cho mọi câu tiếng Việt. Confidence threshold bằng quy tắc đã được triển khai ở bước 9 để lọc facts chưa chắc chắn; hướng cải thiện tiếp theo là xác nhận khi facts mâu thuẫn, memory decay và chỉ lấy phần profile liên quan đến câu hỏi.
+Rủi ro khác là lưu nhầm câu hỏi, câu đùa hoặc dữ kiện đã bị phủ định thành fact; giữ thông tin lỗi thời; hoặc làm mất chi tiết khi compact. Bản triển khai có test cho correction và nhiễu trong dữ liệu, nhưng regex extraction chưa tổng quát cho mọi câu tiếng Việt. Confidence threshold bằng quy tắc đã được triển khai ở bước 9 để lọc facts chưa chắc chắn; hướng cải thiện tiếp theo là xác nhận khi facts mâu thuẫn, chọn lọc profile theo câu hỏi và hiệu chuẩn confidence. Memory decay theo thời gian/số lần xác nhận cũng đã được triển khai ở bước 9.
 
 ## Giới hạn khi đọc số liệu
 

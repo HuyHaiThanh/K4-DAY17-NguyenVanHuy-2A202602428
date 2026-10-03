@@ -43,3 +43,9 @@
 - Counterargument: scores are policy weights, not calibrated probabilities; strict thresholds may suppress true facts. No memory decay or semantic truth verification claimed.
 - Regression fixed: treating every mention of examples as hypothetical suppressed valid style preferences; narrowed the hypothetical marker and added a regression test.
 - Validation: 26 tests passed including original API contract; two original datasets retain Advanced 100% recall; updated stress metrics reflect gated context (312 output / 11043 prompt).
+
+## Step 9 continuation — persistent memory decay
+- Implementation: metadata sidecar records accepted fact value, last assertion time and confirmation count; half-life priority filters persistent retrieval; name/unknown-age legacy facts are protected. Reconfirmation refreshes; corrections reset count. Questions/rejected facts never refresh timestamps. Original API signatures unchanged; memory_file_size keeps profile-only meaning, optional memory_storage_size includes sidecar for benchmark.
+- Review: fake-clock tests establish lower prompt load and stale-profile exclusion after restart; retention/reconfirmation and bounded reinforcement tested; raw profile is not deleted. Decay demo documents time-based behavior independently of the fast original benchmark.
+- Counterargument: age alone cannot determine truth; valid old facts may be suppressed. Ongoing thread messages can still contain old facts. Two-file atomic replacement is not a shared transaction or concurrent-writer lock. Sidecar increases disk usage, explicitly included in growth metrics.
+- Validation: 37 tests passed; original declaration contract passed; two fresh benchmark runs identical with 100% Advanced recall; growth 957/647 bytes includes sidecar.

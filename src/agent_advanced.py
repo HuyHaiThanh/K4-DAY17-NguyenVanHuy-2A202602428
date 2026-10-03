@@ -9,6 +9,7 @@ from model_provider import build_chat_model
 
 from offline_response import answer_from_facts
 from profile_policy import ProfileMemoryPolicy
+from memory_decay import DecayingProfile
 import os
 
 
@@ -33,6 +34,7 @@ class AdvancedAgent:
         self.profile_policy = ProfileMemoryPolicy(float(os.getenv("PROFILE_CONFIDENCE_THRESHOLD", "0.8")))
         self.last_profile_decisions = []
         self.profile_store = UserProfileStore(self.config.state_dir / 'profiles')
+        self.decaying_profile = DecayingProfile(self.profile_store, float(os.getenv('MEMORY_HALF_LIFE_DAYS', '30')), float(os.getenv('MEMORY_MIN_PRIORITY', '0.25')))
         self.compact_memory = CompactMemoryManager(self.config.compact_threshold_tokens, self.config.compact_keep_messages)
         self.thread_tokens: dict[str, int] = {}
         self.thread_prompt_tokens: dict[str, int] = {}
@@ -72,15 +74,14 @@ class AdvancedAgent:
         """
 
         self.last_profile_decisions = self.profile_policy.evaluate(message)
-        for key, value in self.profile_policy.accepted_updates(message).items():
-            self.profile_store.upsert_fact(user_id, key, value)
+        self.decaying_profile.observe(user_id, self.profile_policy.accepted_updates(message))
         self.compact_memory.append(thread_id, 'user', message)
         prompt_tokens = self._estimate_prompt_context_tokens(user_id, thread_id)
         if self.langchain_agent is None:
             answer = self._offline_response(user_id, thread_id, message)
         else:
             context = self.compact_memory.context(thread_id)
-            prompt = [('system', self.profile_store.read_text(user_id) + '\n' + context['summary'])]
+            prompt = [('system', self.decaying_profile.context_text(user_id) + '\n' + context['summary'])]
             prompt.extend((m['role'], m['content']) for m in context['messages'])
             result = self.langchain_agent.invoke(prompt)
             answer = result.content if isinstance(result.content, str) else str(result.content)
@@ -100,7 +101,7 @@ class AdvancedAgent:
         """
 
         context = self.compact_memory.context(thread_id)
-        return estimate_tokens(self.profile_store.read_text(user_id)) + estimate_tokens(context['summary']) + sum(estimate_tokens(m['content']) for m in context['messages'])
+        return estimate_tokens(self.decaying_profile.context_text(user_id)) + estimate_tokens(context['summary']) + sum(estimate_tokens(m['content']) for m in context['messages'])
 
     def _offline_response(self, user_id: str, thread_id: str, message: str) -> str:
         """Student TODO: return a deterministic answer using persisted memory.
@@ -112,12 +113,8 @@ class AdvancedAgent:
         - questions in the long stress dataset
         """
 
-        facts = self.profile_store.facts(user_id)
-        # Recent user assertions can also answer temporary facts in this thread.
-        for m in self.compact_memory.context(thread_id)['messages']:
-            if m['role'] == 'user':
-                for key, value in self.profile_policy.accepted_updates(m['content']).items():
-                    facts.setdefault(key, value)
+        facts = self.decaying_profile.active_facts(user_id)
+        # Do not resurrect decayed facts by replaying older assertions in recent history.
         return answer_from_facts(message, facts)
 
     def _maybe_build_langchain_agent(self):
@@ -139,3 +136,7 @@ class AdvancedAgent:
         if model.provider != 'ollama' and not model.api_key:
             return None
         return build_chat_model(model)
+
+    def memory_storage_size(self, user_id: str) -> int:
+        """Profile plus decay sidecar bytes, for full benchmark accounting."""
+        return self.decaying_profile.storage_size(user_id)

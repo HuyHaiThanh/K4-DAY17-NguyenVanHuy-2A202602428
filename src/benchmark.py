@@ -58,7 +58,7 @@ def run_agent_benchmark(agent_name: str, agent, conversations: list[dict[str, An
     """
 
     users = {c['user_id'] for c in conversations}
-    size = lambda: sum(agent.memory_file_size(u) for u in users) if hasattr(agent, 'memory_file_size') else 0
+    size = lambda: sum((agent.memory_storage_size(u) if hasattr(agent, 'memory_storage_size') else agent.memory_file_size(u)) for u in users) if hasattr(agent, 'memory_file_size') else 0
     before = size()
     threads, recall, quality = [], [], []
     for c in conversations:

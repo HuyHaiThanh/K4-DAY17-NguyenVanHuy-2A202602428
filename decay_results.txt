@@ -1,0 +1,6 @@
+| Scenario | Location priority | Active fields | Profile context tokens |
+|---|---:|---|---:|
+| Day 0 | 1.000 | location, name, profession | 20 |
+| Day 90 without confirmation | 0.125 | name | 8 |
+| Day 90 after reconfirmation | 1.000 | location, name | 12 |
+Raw profile retains all facts. Name is protected. Decay affects retrieval, not physical deletion.

@@ -19,7 +19,7 @@ Sau “Mình đang ở Huế”, câu “Có lẽ mình đang ở Hà Nội” k
 
 Test ablation dùng cùng input với ngưỡng 0.8 và 0.4: chính sách 0.8 giữ Huế; chính sách dễ dãi 0.4 ghi Hà Nội từ câu chưa chắc chắn. Đây là bằng chứng gate có tác động đến ghi memory, không chỉ thêm metadata. Test ngưỡng biên và ngưỡng không hợp lệ; test preference “có ví dụ” để không nhầm với câu giả định.
 
-Chạy: python -m pytest src -v. Hiện 26 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
+Chạy: python -m pytest src -v. Hiện 37 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
 
 ## Tác động và phản biện
 
@@ -29,8 +29,20 @@ Score là trọng số heuristic, không phải xác suất được hiệu chu�
 
 ## Các bonus khác
 
-Đã có entity fields và conflict handling bằng cập nhật field, cùng bộ lọc câu hỏi/nhiễu. Chưa triển khai memory decay. Guide/Rubric cho phép chọn ít nhất một mở rộng; bản này triển khai thêm confidence gate thực tế, không tuyên bố làm mọi hướng bonus hay bảo đảm điểm số.
+Đã có entity fields và conflict handling bằng cập nhật field, cùng bộ lọc câu hỏi/nhiễu. Memory decay đã được triển khai trong src/memory_decay.py và tích hợp vào AdvancedAgent. Guide/Rubric cho phép chọn ít nhất một mở rộng; bản này triển khai thêm confidence gate thực tế, không tuyên bố làm mọi hướng bonus hay bảo đảm điểm số.
 
 ## Đối chiếu Guide
 
-Bước 1–7: môi trường, cấu hình, memory, hai agent, hai benchmark và test đã hoàn thành offline. Bước 8: STEP8.md phân tích số liệu. Bước 9: confidence gate đã tích hợp và có test ablation/correction/restart. Live API và LangGraph middleware vẫn là phần mở rộng chưa kiểm chứng.
+Bước 1–7: môi trường, cấu hình, memory, hai agent, hai benchmark và test đã hoàn thành offline. Bước 8: STEP8.md phân tích số liệu. Bước 9: confidence gate đã tích hợp và có test ablation/correction/restart và memory decay với thời gian giả lập. Live API và LangGraph middleware vẫn là phần mở rộng chưa kiểm chứng.
+
+## Memory decay đã triển khai
+
+Metadata mỗi field gồm value, updated_at và confirmations, lưu trong memory_metadata.json bên cạnh User.md. Chỉ fact đã vượt confidence gate mới cập nhật metadata; câu hỏi recall hoặc fact bị từ chối không tự làm mới tuổi memory.
+
+Priority = min(1, reinforcement × 2^(-age_days / half_life_days)), với reinforcement = min(2, 1 + log2(confirmations)/4). MEMORY_HALF_LIFE_DAYS mặc định 30; MEMORY_MIN_PRIORITY mặc định 0.25. Fact dưới ngưỡng không vào persistent context hoặc câu trả lời offline. Name luôn được giữ; legacy/manual facts thiếu metadata có tuổi chưa biết được giữ, không gán ngày hết hạn tùy tiện.
+
+Xác nhận lại cập nhật thời điểm và tăng confirmations. Correction đổi giá trị reset confirmations về 1. Dữ liệu raw không bị xóa, giúp khôi phục bằng xác nhận lại. Metadata vẫn đọc được sau restart. Decay không xóa recent messages/summary của thread đang diễn ra; nó kiểm soát phần hồ sơ bền vững được truy xuất.
+
+Demo chạy python src/benchmark_decay.py: ngày 0 có name/location/profession; ngày 90 chưa xác nhận chỉ name còn active; nhắc lại location thì field này được kích hoạt. Kết quả ghi trong decay_results.txt. Test agent chứng minh prompt token giảm sau decay và không trả nơi ở hết ưu tiên từ profile.
+
+Trade-off: giảm persistent context nhưng có thể bỏ khỏi prompt một fact vẫn đúng và tăng chi phí lưu metadata. Profile và sidecar được replace riêng, chưa có transaction chung hoặc lock đa tiến trình. Không tuyên bố decay giảm dung lượng trên đĩa. Benchmark Memory growth hiện tính cả User.md và sidecar (957/647 byte); memory_file_size() vẫn trả riêng User.md để giữ nghĩa API cũ.
