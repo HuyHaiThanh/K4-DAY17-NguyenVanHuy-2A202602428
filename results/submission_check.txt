@@ -1,0 +1,37 @@
+Clean copy initially contained only src/ and data/. No .env, state, root documents, Git metadata or requirements file were copied. Dependencies provided by the installed virtual environment.
+
+COMMAND: python src/benchmark.py
+
+Standard Benchmark
+| Agent    |   Agent tokens only |   Prompt tokens processed | Cross-session recall   | Response quality   |   Memory growth (bytes) |   Compactions |
+|----------|---------------------|---------------------------|------------------------|--------------------|-------------------------|---------------|
+| Baseline |                1521 |                     14865 | 3.6%                   | 3.6%               |                       0 |             0 |
+| Advanced |                1664 |                     21732 | 100.0%                 | 100.0%             |                     957 |             0 |
+
+Long-Context Stress Benchmark
+| Agent    |   Agent tokens only |   Prompt tokens processed | Cross-session recall   | Response quality   |   Memory growth (bytes) |   Compactions |
+|----------|---------------------|---------------------------|------------------------|--------------------|-------------------------|---------------|
+| Baseline |                 281 |                     22423 | 0.0%                   | 0.0%               |                       0 |             0 |
+| Advanced |                 312 |                     11937 | 100.0%                 | 100.0%             |                     647 |             4 |
+
+Offline deterministic benchmark; tokens are estimates; quality is a recall/concision proxy. Training and recall turns are both included.
+
+COMMAND: pytest src/test_agents.py -v
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- C:\VIN_AI\LAB_17\K4-L3A-DAY17-Track03-NguyenVanHuy-2A202602428-PublicMemorySystems4Agent\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\admin\AppData\Local\Temp\day17-submission-ZYbNbB
+plugins: anyio-4.15.1, langsmith-0.14.4
+collecting ... collected 7 items
+
+src/test_agents.py::test_user_markdown_read_write_edit PASSED            [ 14%]
+src/test_agents.py::test_compact_trigger PASSED                          [ 28%]
+src/test_agents.py::test_cross_session_recall PASSED                     [ 42%]
+src/test_agents.py::test_compact_reduces_prompt_load_on_long_thread PASSED [ 57%]
+src/test_agents.py::test_noise_and_corrections PASSED                    [ 71%]
+src/test_agents.py::test_dataset_benchmarks PASSED                       [ 85%]
+src/test_agents.py::test_token_and_recall_conventions PASSED             [100%]
+
+============================== 7 passed in 0.93s ==============================
+
+Second benchmark run: identical output. Original workspace state was empty and removed before verification.

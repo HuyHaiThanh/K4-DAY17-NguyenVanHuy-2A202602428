@@ -30,7 +30,7 @@ Compact hợp nhất summary cũ với facts/correction và giữ recent message
 
 Tắt compact bằng config copy có ngưỡng 10^12 làm prompt cost Advanced tăng gần về mức Baseline, còn cao hơn vì profile overhead. Bật compact giảm khoảng 48,8% so với chính Advanced không compact, trong khi output/recall/growth không đổi. Config mặc định không bị sửa.
 
-Giới hạn: summary có giới hạn vẫn có thể mất facts/excerpts ít ưu tiên; recall dataset chủ yếu đo profile. Kết quả và trace nằm trong [ablation_results.txt](ablation_results.txt), chạy lại bằng python src/benchmark_ablation.py.
+Giới hạn: summary có giới hạn vẫn có thể mất facts/excerpts ít ưu tiên; recall dataset chủ yếu đo profile. Kết quả và trace nằm trong [ablation_results.txt](results/compact_ablation.txt), chạy lại bằng python src/benchmark_ablation.py.
 
 ## 4. File memory tăng trưởng ra sao và rủi ro gì?
 
@@ -44,4 +44,14 @@ Rủi ro đã kiểm chứng bằng case nhiễu: câu hỏi, câu đùa hoặc 
 
 Một thread recall mới cho mỗi conversation, dùng chung cho các câu hỏi recall của conversation đó và cùng ID protocol ở cả hai agent. Main benchmark tạo state tạm sạch riêng mỗi suite và cố định clock offline, nên không cần xóa state cá nhân; hai lần chạy cho cùng output.
 
-Tokens offline là ceil(len(text.strip())/4); cả training và recall đều tính. Quality là proxy recall/concision dùng cùng công thức cho hai agent. Memory growth gồm profile và metadata; không phải tốc độ byte/giây. Dữ liệu data/ giữ nguyên nội dung so với scaffold gốc. Kết quả đầy đủ: [benchmark_results.txt](benchmark_results.txt).
+Tokens offline là ceil(len(text.strip())/4); cả training và recall đều tính. Quality là proxy recall/concision dùng cùng công thức cho hai agent. Memory growth gồm profile và metadata; không phải tốc độ byte/giây. Dữ liệu data/ giữ nguyên nội dung so với scaffold gốc. Kết quả đầy đủ: [benchmark_results.txt](results/benchmark.txt).
+
+## Bonus bước 9: triển khai, bằng chứng và rủi ro
+
+**Confidence threshold:** src/profile_policy.py đánh giá theo câu trước ghi User.md; ngưỡng PROFILE_CONFIDENCE_THRESHOLD mặc định 0.8. Assertion 0.95 được lưu; uncertainty 0.4, hypothetical/third-party 0.1 và question 0 bị từ chối (question luôn từ chối kể cả ngưỡng 0). Test ablation cho thấy ngưỡng 0.8 giữ Huế sau “Có lẽ mình ở Hà Nội”, còn 0.4 ghi Hà Nội; profile đúng vẫn tồn tại sau restart. Cơ chế giảm memory pollution nhưng điểm chưa được hiệu chuẩn, có thể từ chối fact đúng diễn đạt dè dặt.
+
+**Memory decay:** src/memory_decay.py lưu value/updated_at/confirmations bên cạnh User.md. Priority = min(1, reinforcement × 2^(-age_days/half_life_days)), reinforcement = min(2, 1 + log2(confirmations)/4); half-life mặc định 30 ngày, min priority 0.25. Name được giữ, hồ sơ cũ không rõ tuổi không bị gán ngày hết hạn giả. Xác nhận lại làm mới tuổi; correction reset confirmations về 1. Demo clock giả lập giảm profile context từ 20 xuống 8 token sau 90 ngày, rồi 12 khi xác nhận lại location ([output](results/decay.txt)). Decay không xóa raw facts và không thu nhỏ file; nó giảm context nhưng có thể bỏ khỏi prompt fact vẫn đúng, còn metadata tăng dung lượng lưu.
+
+**Entity extraction và conflict handling:** facts được tách thành field; correction thay location/profession cũ, không giữ đồng thời hai giá trị hiện tại. Test kiểm tra Đà Nẵng → Huế và backend → MLOps, bỏ qua Hà Nội là nơi họp và product manager là câu đùa. Quy tắc này cải thiện tính nhất quán nhưng chưa tổng quát mọi cách diễn đạt; interests hợp nhất chưa hỗ trợ xóa sở thích cũ.
+
+Các phép thử bonus được thực hiện trong code, không chỉ mô tả tài liệu. Bộ test mở rộng có 65 test pass; benchmark gốc vẫn đạt 100% Advanced recall. Không quy toàn bộ mức giảm prompt cho bonus: compact ablation mới xác định tác động compact, còn confidence/decay có test can thiệp riêng. Profile/metadata replace riêng, chưa có transaction chung; điểm số/test ẩn do người chấm quyết định.
