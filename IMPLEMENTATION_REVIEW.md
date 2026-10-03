@@ -36,3 +36,10 @@
 - Review: steps 1–8 are implemented for offline scope; selected step 9 work is structured fields, correction/conflict handling and rule-based question/noise filtering. Evidence and limits are in STEP9.md.
 - Counterargument: these heuristics overlap core extraction and do not establish a calibrated confidence threshold or decay. No ablation measures incremental bonus gain; no promise of a numeric grade or hidden-test success.
 - Validation: reran full suite: 11 passed; both benchmark tables unchanged. No implementation changes in this audit.
+
+## Step 9 implementation — confidence gate
+- Implementation: ProfileMemoryPolicy applies configurable finite threshold before profile writes, sentence-level evidence scores and decision reasons; uncertain candidates do not re-enter offline facts from recent context. Scaffold declarations unchanged.
+- Review: questions remain rejected even at zero threshold; explicit corrections accepted; uncertainty survives restart as a rejected write. Ablation at 0.8 vs 0.4 demonstrates prevention of uncertain-location overwrite.
+- Counterargument: scores are policy weights, not calibrated probabilities; strict thresholds may suppress true facts. No memory decay or semantic truth verification claimed.
+- Regression fixed: treating every mention of examples as hypothetical suppressed valid style preferences; narrowed the hypothetical marker and added a regression test.
+- Validation: 26 tests passed including original API contract; two original datasets retain Advanced 100% recall; updated stress metrics reflect gated context (312 output / 11043 prompt).

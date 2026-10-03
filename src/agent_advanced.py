@@ -8,6 +8,8 @@ from memory_store import CompactMemoryManager, UserProfileStore, estimate_tokens
 from model_provider import build_chat_model
 
 from offline_response import answer_from_facts
+from profile_policy import ProfileMemoryPolicy
+import os
 
 
 @dataclass
@@ -28,6 +30,8 @@ class AdvancedAgent:
     def __init__(self, config: LabConfig | None = None, force_offline: bool = False) -> None:
         self.config = config or load_config()
         self.force_offline = force_offline
+        self.profile_policy = ProfileMemoryPolicy(float(os.getenv("PROFILE_CONFIDENCE_THRESHOLD", "0.8")))
+        self.last_profile_decisions = []
         self.profile_store = UserProfileStore(self.config.state_dir / 'profiles')
         self.compact_memory = CompactMemoryManager(self.config.compact_threshold_tokens, self.config.compact_keep_messages)
         self.thread_tokens: dict[str, int] = {}
@@ -67,7 +71,8 @@ class AdvancedAgent:
         6. Append the assistant reply and update token counters.
         """
 
-        for key, value in extract_profile_updates(message).items():
+        self.last_profile_decisions = self.profile_policy.evaluate(message)
+        for key, value in self.profile_policy.accepted_updates(message).items():
             self.profile_store.upsert_fact(user_id, key, value)
         self.compact_memory.append(thread_id, 'user', message)
         prompt_tokens = self._estimate_prompt_context_tokens(user_id, thread_id)
@@ -111,7 +116,7 @@ class AdvancedAgent:
         # Recent user assertions can also answer temporary facts in this thread.
         for m in self.compact_memory.context(thread_id)['messages']:
             if m['role'] == 'user':
-                for key, value in extract_profile_updates(m['content']).items():
+                for key, value in self.profile_policy.accepted_updates(m['content']).items():
                     facts.setdefault(key, value)
         return answer_from_facts(message, facts)
 

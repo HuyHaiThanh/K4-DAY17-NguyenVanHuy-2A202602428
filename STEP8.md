@@ -16,7 +16,7 @@ Prompt tokens processed của Baseline là 14.742, Advanced là 21.582, tăng kh
 
 Baseline giữ toàn bộ lịch sử và xử lý lại context tích lũy mỗi lượt. Advanced nén phần lịch sử cũ thành summary có giới hạn, giữ các message gần nhất cùng hồ sơ người dùng. Cách này giảm lượng nội dung phải xử lý lặp lại khi cuộc hội thoại dài.
 
-Trong Long-Context Stress Benchmark, Advanced compact 3 lần. Prompt tokens processed giảm từ 22.300 của Baseline xuống 11.019 của Advanced, tức khoảng 50,6%, trong khi Advanced vẫn đạt 100% recall các facts được kiểm tra. Agent tokens only tăng từ 281 lên 306: lợi ích chính nằm ở prompt load, không phải độ dài câu trả lời.
+Trong Long-Context Stress Benchmark, Advanced compact 3 lần. Prompt tokens processed giảm từ 22.300 của Baseline xuống 11.043 của Advanced, tức khoảng 50,5%, trong khi Advanced vẫn đạt 100% recall các facts được kiểm tra. Agent tokens only tăng từ 281 lên 312: lợi ích chính nằm ở prompt load, không phải độ dài câu trả lời.
 
 Kết quả này chưa chứng minh summary giữ được mọi chi tiết cũ: các câu recall của dataset chủ yếu kiểm tra profile. Summary trích đoạn có thể làm mất nội dung tạm thời; đây là đánh đổi giữa chi phí token và độ đầy đủ của ngữ cảnh.
 
@@ -26,7 +26,7 @@ Memory growth của Advanced là 287 byte ở Standard Benchmark và 207 byte �
 
 User.md lưu theo field và cập nhật fact hiện có, nên việc lặp lại cùng fact không làm file dài thêm như nối toàn bộ hội thoại. Tuy nhiên, tập sở thích hoặc số người dùng tăng vẫn làm tổng memory tăng. Profile dài hơn cũng làm prompt tốn hơn nếu đọc toàn bộ ở mỗi lượt.
 
-Rủi ro khác là lưu nhầm câu hỏi, câu đùa hoặc dữ kiện đã bị phủ định thành fact; giữ thông tin lỗi thời; hoặc làm mất chi tiết khi compact. Bản triển khai có test cho correction và nhiễu trong dữ liệu, nhưng regex extraction chưa tổng quát cho mọi câu tiếng Việt. Hướng cải thiện là confidence threshold, xác nhận khi facts mâu thuẫn, memory decay và chỉ lấy phần profile liên quan đến câu hỏi.
+Rủi ro khác là lưu nhầm câu hỏi, câu đùa hoặc dữ kiện đã bị phủ định thành fact; giữ thông tin lỗi thời; hoặc làm mất chi tiết khi compact. Bản triển khai có test cho correction và nhiễu trong dữ liệu, nhưng regex extraction chưa tổng quát cho mọi câu tiếng Việt. Confidence threshold bằng quy tắc đã được triển khai ở bước 9 để lọc facts chưa chắc chắn; hướng cải thiện tiếp theo là xác nhận khi facts mâu thuẫn, memory decay và chỉ lấy phần profile liên quan đến câu hỏi.
 
 ## Giới hạn khi đọc số liệu
 
