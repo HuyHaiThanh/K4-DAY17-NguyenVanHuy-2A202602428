@@ -1,10 +1,24 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
+
+from model_provider import ProviderConfig
+
 import os
 from model_provider import ProviderConfig, normalize_provider
 
+
 @dataclass
 class LabConfig:
+    """Student TODO: define the shared configuration for the lab.
+
+    Hints:
+    - Keep paths for the repo root, dataset directory, and state directory.
+    - Add compact-memory settings such as threshold and number of messages to keep.
+    - Add provider settings for `openai`, `custom`, `gemini`, `anthropic`, `ollama`, and `openrouter`.
+    """
+
     base_dir: Path
     data_dir: Path
     state_dir: Path
@@ -15,6 +29,15 @@ class LabConfig:
 
 
 def load_config(base_dir: Path | None = None) -> LabConfig:
+    """Student TODO: load environment variables and return a LabConfig.
+
+    Pseudocode:
+    1. Resolve the repo root or default to the current file parent.
+    2. Optionally load values from `.env`.
+    3. Create `state/` if it does not exist.
+    4. Return a populated LabConfig instance.
+    """
+
     root = (base_dir or Path(__file__).resolve().parent.parent).resolve()
     from dotenv import load_dotenv
     load_dotenv(root / '.env', override=False)

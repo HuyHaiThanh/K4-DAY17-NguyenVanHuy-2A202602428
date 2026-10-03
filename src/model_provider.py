@@ -1,15 +1,31 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass
 class ProviderConfig:
+    """Student TODO: define the provider configuration shared by the agents.
+
+    Required providers for this lab:
+    - openai
+    - custom (OpenAI-compatible base URL)
+    - gemini
+    - anthropic
+    - ollama
+    - openrouter
+    """
+
     provider: str
     model_name: str
-    temperature: float = 0.0
+    temperature: float
     api_key: str | None = None
     base_url: str | None = None
 
 
 def normalize_provider(value: str) -> str:
+    """Student TODO: map aliases like `anthorpic` -> `anthropic`."""
+
     value = value.strip().lower()
     value = {'anthorpic': 'anthropic', 'google': 'gemini', 'openai-compatible': 'custom'}.get(value, value)
     if value not in {'openai', 'custom', 'gemini', 'anthropic', 'ollama', 'openrouter'}:
@@ -18,6 +34,17 @@ def normalize_provider(value: str) -> str:
 
 
 def build_chat_model(config: ProviderConfig):
+    """Student TODO: instantiate the real chat model for the selected provider.
+
+    Pseudocode:
+    - `openai` -> `ChatOpenAI`
+    - `custom` -> `ChatOpenAI` with `base_url`
+    - `gemini` -> `ChatGoogleGenerativeAI`
+    - `anthropic` -> `ChatAnthropic`
+    - `ollama` -> `ChatOllama`
+    - `openrouter` -> `ChatOpenRouter`
+    """
+
     provider = normalize_provider(config.provider)
     kwargs = {'model': config.model_name, 'temperature': config.temperature}
     if config.api_key:

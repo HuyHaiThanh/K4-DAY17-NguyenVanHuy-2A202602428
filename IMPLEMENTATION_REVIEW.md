@@ -25,3 +25,9 @@
 - Review: report distinguishes token estimates, recall and quality proxy; records Windows commands and live scope. READMEs identify completed implementation.
 - Counterargument: perfect small-dataset recall is not production readiness; semantic summaries, concurrent writes, preference deletion and live usage accounting remain documented limitations.
 - Validation: 7 tests passed; two clean benchmark runs identical; git diff --check passed. Submission targets origin/main, not upstream.
+
+## Compatibility correction after user review
+- Finding: AgentContext and force_offline were removed; default construction required remote credentials; hashed-only paths diverged from the documented layout. These were genuine compatibility risks.
+- Fix: restore original declarations, annotations, dataclass fields and method order; offline fallback without credentials; safe user path and legacy hashed-profile reads; tolerate plain Markdown fact values.
+- Counterargument: hidden tests are unavailable. Snapshot checks establish published declaration compatibility, not arbitrary hidden expectations or production language coverage. Additional helper methods/files remain implementation details.
+- Validation: 11 tests passed, including AST declaration snapshot derived from dc0e2da; benchmark output unchanged; diff whitespace checks passed.

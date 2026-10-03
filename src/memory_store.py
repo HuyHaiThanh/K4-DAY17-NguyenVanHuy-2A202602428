@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
+
 import hashlib
 import json
 import math
@@ -7,23 +10,45 @@ import re
 
 
 def estimate_tokens(text: str) -> int:
+    """Student TODO: implement a simple token estimator.
+
+    Example idea:
+    - Strip whitespace
+    - Return 0 for empty text
+    - Approximate tokens from character count, e.g. len(text) / 4
+    """
+
     return math.ceil(len(text.strip()) / 4)
 
 
 @dataclass
 class UserProfileStore:
+    """Persistent storage for `User.md`.
+
+    Student TODO:
+    - Map each user id to one markdown file
+    - Support read / write / edit operations
+    - Optionally expose helpers like `facts()` or `upsert_fact()`
+    """
+
     root_dir: Path
 
     def path_for(self, user_id: str) -> Path:
-        # Full digest avoids collisions and prevents traversal for arbitrary user IDs.
-        slug = hashlib.sha256(user_id.encode('utf-8')).hexdigest()
-        return self.root_dir / slug / 'User.md'
+        # TODO: slugify or sanitize the user id before building the file path.
+        # Safe IDs keep the documented profiles/<user>/User.md layout.
+        reserved = {'con', 'prn', 'aux', 'nul'} | {f'com{i}' for i in range(1, 10)} | {f'lpt{i}' for i in range(1, 10)}
+        if re.fullmatch(r'[A-Za-z0-9_-]+', user_id) and user_id.lower() not in reserved:
+            return self.root_dir / user_id / 'User.md'
+        digest = hashlib.sha256(user_id.encode('utf-8')).hexdigest()
+        return self.root_dir / '_unsafe' / digest / 'User.md'
 
     def read_text(self, user_id: str) -> str:
-        path = self.path_for(user_id)
+        # TODO: return file content or an empty default markdown profile.
+        path = self._existing_path(user_id)
         return path.read_text(encoding='utf-8') if path.exists() else ''
 
     def write_text(self, user_id: str, content: str) -> Path:
+        # TODO: write markdown to disk and return the file path.
         path = self.path_for(user_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_suffix('.tmp')
@@ -32,6 +57,7 @@ class UserProfileStore:
         return path
 
     def edit_text(self, user_id: str, search_text: str, replacement: str) -> bool:
+        # TODO: replace one occurrence inside User.md and return whether it changed.
         text = self.read_text(user_id)
         if not search_text or search_text not in text:
             return False
@@ -39,15 +65,25 @@ class UserProfileStore:
         return True
 
     def file_size(self, user_id: str) -> int:
-        path = self.path_for(user_id)
+        # TODO: return the current file size in bytes.
+        path = self._existing_path(user_id)
         return path.stat().st_size if path.exists() else 0
+
+    def _existing_path(self, user_id: str) -> Path:
+        path = self.path_for(user_id)
+        legacy = self.root_dir / hashlib.sha256(user_id.encode('utf-8')).hexdigest() / 'User.md'
+        return path if path.exists() or not legacy.exists() else legacy
 
     def facts(self, user_id: str) -> dict[str, str]:
         facts = {}
         for line in self.read_text(user_id).splitlines():
             if line.startswith('- ') and ': ' in line:
                 key, value = line[2:].split(': ', 1)
-                facts[key] = json.loads(value)
+                try:
+                    facts[key] = json.loads(value)
+                except json.JSONDecodeError:
+                    # Accept ordinary Markdown facts supplied through write_text/edit_text.
+                    facts[key] = value
         return facts
 
     def upsert_fact(self, user_id: str, key: str, value: str) -> None:
@@ -60,6 +96,21 @@ class UserProfileStore:
 
 
 def extract_profile_updates(message: str) -> dict[str, str]:
+    """Student TODO: convert raw user text into stable profile facts.
+
+    Example facts you may want to extract:
+    - name
+    - location
+    - profession
+    - preferences / response style
+    - favorite food / drink
+
+    Pseudocode:
+    1. Build a few regex patterns.
+    2. Skip obvious question-only turns.
+    3. Return only the facts that are confidently present in the message.
+    """
+
     facts = {}
     # Extract assertions clause by clause, excluding questions and explicit negations.
     clauses = re.split(r'[.!?;\n]|,| nhưng | chứ ', message, flags=re.I)
@@ -98,24 +149,34 @@ def extract_profile_updates(message: str) -> dict[str, str]:
 
 
 def summarize_messages(messages: list[dict[str, str]], max_items: int = 6) -> str:
-    # Bounded heuristic preserves short excerpts rather than whole paragraphs.
+    """Student TODO: create a compact summary of older messages.
+
+    This can be heuristic text concatenation first.
+    Later, you can replace it with an LLM-based summary if desired.
+    """
+
     return '\n'.join(m['content'][:160] for m in messages[-max_items:])
 
 
 @dataclass
 class CompactMemoryManager:
+    """Student TODO: implement compact memory for long threads.
+
+    Goal:
+    - Keep recent messages in full
+    - When the thread grows too large, move older content into a summary
+    - Track how many compactions happened for benchmarking
+    """
+
     threshold_tokens: int
     keep_messages: int
     state: dict[str, dict[str, object]] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self.threshold_tokens <= 0 or self.keep_messages < 1:
-            raise ValueError('Invalid compact settings')
-
-    def context(self, thread_id: str) -> dict[str, object]:
-        return self.state.setdefault(thread_id, {'messages': [], 'summary': '', 'compactions': 0})
-
     def append(self, thread_id: str, role: str, content: str) -> None:
+        # TODO:
+        # 1. create thread state if missing
+        # 2. append the new message
+        # 3. trigger compaction if needed
         state = self.context(thread_id)
         state['messages'].append({'role': role, 'content': content})
         total = estimate_tokens(state['summary']) + sum(estimate_tokens(m['content']) for m in state['messages'])
@@ -129,5 +190,14 @@ class CompactMemoryManager:
             state['messages'] = state['messages'][-self.keep_messages:]
             state['compactions'] += 1
 
+    def context(self, thread_id: str) -> dict[str, object]:
+        # TODO: return per-thread state with keys like messages, summary, compactions.
+        return self.state.setdefault(thread_id, {'messages': [], 'summary': '', 'compactions': 0})
+
     def compaction_count(self, thread_id: str) -> int:
+        # TODO: return number of compactions for this thread.
         return self.context(thread_id)['compactions']
+
+    def __post_init__(self):
+        if self.threshold_tokens <= 0 or self.keep_messages < 1:
+            raise ValueError('Invalid compact settings')

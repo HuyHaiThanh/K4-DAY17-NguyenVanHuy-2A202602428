@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from typing import Any
+
 from config import LabConfig, load_config
-from memory_store import estimate_tokens, extract_profile_updates
+from memory_store import estimate_tokens
 from model_provider import build_chat_model
+
+from memory_store import estimate_tokens, extract_profile_updates
 from offline_response import answer_from_facts
+
 
 @dataclass
 class SessionState:
@@ -12,23 +19,56 @@ class SessionState:
 
 
 class BaselineAgent:
-    def __init__(self, config: LabConfig | None = None, force_offline: bool = False):
+    """Student TODO: implement Agent A.
+
+    Requirements:
+    - Within-session memory only
+    - No persistent `User.md`
+    - Should forget long-term facts across new threads
+    """
+
+    def __init__(self, config: LabConfig | None = None, force_offline: bool = False) -> None:
         self.config = config or load_config()
-        self.sessions = {}
+        self.force_offline = force_offline
+        self.sessions: dict[str, SessionState] = {}
         self.owners = {}
         self.langchain_agent = None if force_offline else self._maybe_build_langchain_agent()
 
-    def _maybe_build_langchain_agent(self):
-        # Live mode is explicit through force_offline=False; errors are not silently hidden.
-        return build_chat_model(self.config.model)
+    def reply(self, user_id: str, thread_id: str, message: str) -> dict[str, Any]:
+        """Student TODO: return the agent response and token accounting.
 
-    def reply(self, user_id: str, thread_id: str, message: str) -> dict:
+        Pseudocode:
+        - If a live agent exists, call the live path.
+        - Otherwise use a deterministic offline path.
+        """
+
         if thread_id in self.owners and self.owners[thread_id] != user_id:
             raise ValueError('Thread belongs to another user')
         self.owners[thread_id] = user_id
         return self._reply_offline(thread_id, message)
 
-    def _reply_offline(self, thread_id: str, message: str) -> dict:
+    def token_usage(self, thread_id: str) -> int:
+        # TODO: return cumulative agent token count for one thread.
+        return self.sessions.get(thread_id, SessionState()).token_usage
+
+    def prompt_token_usage(self, thread_id: str) -> int:
+        # TODO: estimate how much prompt context this baseline kept processing.
+        return self.sessions.get(thread_id, SessionState()).prompt_tokens_processed
+
+    def compaction_count(self, thread_id: str) -> int:
+        # Baseline has no compact memory.
+        return 0
+
+    def _reply_offline(self, thread_id: str, message: str) -> dict[str, Any]:
+        """Student TODO: implement a simple offline behavior.
+
+        Suggested behavior:
+        - Store the new user message in the session
+        - Generate a short deterministic reply
+        - Update token counts
+        - Never remember facts across different thread ids
+        """
+
         state = self.sessions.setdefault(thread_id, SessionState())
         state.messages.append({'role': 'user', 'content': message})
         prompt_tokens = sum(estimate_tokens(m['content']) for m in state.messages)
@@ -47,11 +87,16 @@ class BaselineAgent:
         state.prompt_tokens_processed += prompt_tokens
         return {'answer': answer, 'agent_tokens': tokens, 'prompt_tokens': prompt_tokens}
 
-    def token_usage(self, thread_id: str) -> int:
-        return self.sessions.get(thread_id, SessionState()).token_usage
+    def _maybe_build_langchain_agent(self):
+        """Student TODO: optionally wire `create_agent` + `InMemorySaver` here.
 
-    def prompt_token_usage(self, thread_id: str) -> int:
-        return self.sessions.get(thread_id, SessionState()).prompt_tokens_processed
+        Use `build_chat_model(self.config.model)` so the baseline can run with any supported provider.
+        """
 
-    def compaction_count(self, thread_id: str) -> int:
-        return 0
+        if self.force_offline:
+            return None
+        model = self.config.model
+        # No remote credentials means the scaffold's deterministic offline path.
+        if model.provider != 'ollama' and not model.api_key:
+            return None
+        return build_chat_model(model)

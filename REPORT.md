@@ -6,7 +6,7 @@ Từ root: `.\.venv\Scripts\python.exe -m pytest src/test_agents.py -v` và `.\.
 
 ## Kiến trúc
 
-Baseline giữ messages theo thread và trích facts từ chính lịch sử đó. Advanced bổ sung User.md theo user, keyed updates thay fact cũ, hợp nhất interests, summary giới hạn và recent messages. Cả hai dùng chung extraction và response để so sánh công bằng. Thread owner check chống trộn user. Profile được ghi UTF-8 bằng file tạm và replace, đường dẫn dùng SHA256 user ID để chống traversal/va chạm.
+Baseline giữ messages theo thread và trích facts từ chính lịch sử đó. Advanced bổ sung User.md theo user, keyed updates thay fact cũ, hợp nhất interests, summary giới hạn và recent messages. Cả hai dùng chung extraction và response để so sánh công bằng. Thread owner check chống trộn user. Profile được ghi UTF-8 bằng file tạm và replace, đường dẫn giữ profiles/<user>/User.md cho ID an toàn; ID không an toàn dùng namespace hash riêng và vẫn đọc được hồ sơ hash của bản trước.
 
 Ngưỡng mặc định 1000 token, giữ 4 messages. Summary giới hạn khoảng 1/3 ngưỡng. Recent messages quá dài vẫn có thể vượt ngưỡng; đây là trigger nén chứ không phải hard context limit.
 
@@ -31,9 +31,13 @@ Tokens ước lượng bằng ceil(len(text.strip())/4), không phải usage tí
 - 100% trên dataset không chứng minh hiểu mọi câu tiếng Việt hay tuân thủ chính xác style 3 bullet. Offline đo memory plumbing.
 - Summary là trích đoạn giới hạn, có thể mất chi tiết tạm thời. Recall dataset chủ yếu kiểm tra profile, không đủ chứng minh nhớ mọi chủ đề news. Tin tức trong input chỉ được xem là dữ liệu test, chưa xác minh sự kiện.
 - Regex extraction có test correction và nhiễu nhưng chưa có confidence hiệu chuẩn. Interests hợp nhất chưa hỗ trợ xóa sở thích. Chưa có memory decay hoặc đồng bộ nhiều tiến trình cùng ghi hồ sơ.
-- Live dùng direct chat invocation với factory sáu provider, bật force_offline=False. Chưa triển khai LangGraph tool/middleware hoặc LLM summary. Không gọi API thật và live token vẫn là ước lượng. Model mặc định có thể thay bằng env.
+- Live dùng direct chat invocation với factory sáu provider, bật force_offline=False khi có credentials (Ollama không cần key); thiếu credentials remote thì fallback offline. Chưa triển khai LangGraph tool/middleware hoặc LLM summary. Không gọi API thật và live token vẫn là ước lượng. Model mặc định có thể thay bằng env.
 - Env: LLM_PROVIDER, LLM_MODEL, LLM_TEMPERATURE, JUDGE_PROVIDER, JUDGE_MODEL, COMPACT_THRESHOLD_TOKENS, COMPACT_KEEP_MESSAGES, cùng API_KEY/BASE_URL tương ứng provider. Judge config có sẵn nhưng offline không dùng judge.
+
+## Tương thích scaffold
+
+Đã khôi phục AgentContext, force_offline, future annotations, chữ ký hàm, dataclass fields và thứ tự khai báo từ commit đề bài dc0e2da. Test contract dùng snapshot khai báo gốc, không cần Git khi chạy. Không có bộ test ẩn của người chấm nên chỉ cam kết tương thích các khai báo được công bố, không cam kết pass mọi hành vi chưa được mô tả.
 
 ## Review cuối
 
-7 test hành vi pass trên Python 3.14.7, gồm profile, compact nhiều lần, same-thread recall, fresh-thread forgetting, restart, user isolation, correction/noise và hai dataset. Hai lần benchmark sạch cho kết quả giống nhau. Không hard-code tên DũngCT trong câu trả lời; test dùng tên Lan. .env, state, .venv và cache được bỏ qua Git.
+11 test hành vi và contract pass trên Python 3.14.7, gồm profile, compact nhiều lần, same-thread recall, fresh-thread forgetting, restart, user isolation, correction/noise và hai dataset. Hai lần benchmark sạch cho kết quả giống nhau. Không hard-code tên DũngCT trong câu trả lời; test dùng tên Lan. .env, state, .venv và cache được bỏ qua Git.

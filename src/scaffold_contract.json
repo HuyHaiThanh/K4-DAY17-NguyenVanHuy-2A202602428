@@ -1,0 +1,206 @@
+{
+  "agent_advanced.py": {
+    "AgentContext": [
+      "AnnAssign(target=Name(id='user_id', ctx=Store()), annotation=Name(id='str', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='memory_path', ctx=Store()), annotation=Name(id='str', ctx=Load()), simple=1)"
+    ],
+    "AdvancedAgent": [],
+    "AdvancedAgent.__init__": [
+      "arguments(args=[arg(arg='self'), arg(arg='config', annotation=BinOp(left=Name(id='LabConfig', ctx=Load()), op=BitOr(), right=Constant(value=None))), arg(arg='force_offline', annotation=Name(id='bool', ctx=Load()))], defaults=[Constant(value=None), Constant(value=False)])",
+      "Constant(value=None)"
+    ],
+    "AdvancedAgent.reply": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "AdvancedAgent.token_usage": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "AdvancedAgent.prompt_token_usage": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "AdvancedAgent.memory_file_size": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "AdvancedAgent.compaction_count": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "AdvancedAgent._reply_offline": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "AdvancedAgent._estimate_prompt_context_tokens": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "AdvancedAgent._offline_response": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='str', ctx=Load())"
+    ],
+    "AdvancedAgent._maybe_build_langchain_agent": [
+      "arguments(args=[arg(arg='self')])",
+      null
+    ]
+  },
+  "agent_baseline.py": {
+    "SessionState": [
+      "AnnAssign(target=Name(id='messages', ctx=Store()), annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='str', ctx=Load())], ctx=Load()), ctx=Load()), ctx=Load()), value=Call(func=Name(id='field', ctx=Load()), keywords=[keyword(arg='default_factory', value=Name(id='list', ctx=Load()))]), simple=1)",
+      "AnnAssign(target=Name(id='token_usage', ctx=Store()), annotation=Name(id='int', ctx=Load()), value=Constant(value=0), simple=1)",
+      "AnnAssign(target=Name(id='prompt_tokens_processed', ctx=Store()), annotation=Name(id='int', ctx=Load()), value=Constant(value=0), simple=1)"
+    ],
+    "BaselineAgent": [],
+    "BaselineAgent.__init__": [
+      "arguments(args=[arg(arg='self'), arg(arg='config', annotation=BinOp(left=Name(id='LabConfig', ctx=Load()), op=BitOr(), right=Constant(value=None))), arg(arg='force_offline', annotation=Name(id='bool', ctx=Load()))], defaults=[Constant(value=None), Constant(value=False)])",
+      "Constant(value=None)"
+    ],
+    "BaselineAgent.reply": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "BaselineAgent.token_usage": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "BaselineAgent.prompt_token_usage": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "BaselineAgent.compaction_count": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "BaselineAgent._reply_offline": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "BaselineAgent._maybe_build_langchain_agent": [
+      "arguments(args=[arg(arg='self')])",
+      null
+    ]
+  },
+  "benchmark.py": {
+    "BenchmarkRow": [
+      "AnnAssign(target=Name(id='agent_name', ctx=Store()), annotation=Name(id='str', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='agent_tokens_only', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='prompt_tokens_processed', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='recall_score', ctx=Store()), annotation=Name(id='float', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='response_quality', ctx=Store()), annotation=Name(id='float', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='memory_growth_bytes', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='compactions', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)"
+    ],
+    "load_conversations": [
+      "arguments(args=[arg(arg='path', annotation=Name(id='Path', ctx=Load()))])",
+      "Subscript(value=Name(id='list', ctx=Load()), slice=Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load()), ctx=Load())"
+    ],
+    "recall_points": [
+      "arguments(args=[arg(arg='answer', annotation=Name(id='str', ctx=Load())), arg(arg='expected', annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Name(id='str', ctx=Load()), ctx=Load()))])",
+      "Name(id='float', ctx=Load())"
+    ],
+    "heuristic_quality": [
+      "arguments(args=[arg(arg='answer', annotation=Name(id='str', ctx=Load())), arg(arg='expected', annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Name(id='str', ctx=Load()), ctx=Load()))])",
+      "Name(id='float', ctx=Load())"
+    ],
+    "run_agent_benchmark": [
+      "arguments(args=[arg(arg='agent_name', annotation=Name(id='str', ctx=Load())), arg(arg='agent'), arg(arg='conversations', annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load()), ctx=Load())), arg(arg='config')])",
+      "Name(id='BenchmarkRow', ctx=Load())"
+    ],
+    "format_rows": [
+      "arguments(args=[arg(arg='rows', annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Name(id='BenchmarkRow', ctx=Load()), ctx=Load()))])",
+      "Name(id='str', ctx=Load())"
+    ],
+    "main": [
+      "arguments()",
+      "Constant(value=None)"
+    ]
+  },
+  "config.py": {
+    "LabConfig": [
+      "AnnAssign(target=Name(id='base_dir', ctx=Store()), annotation=Name(id='Path', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='data_dir', ctx=Store()), annotation=Name(id='Path', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='state_dir', ctx=Store()), annotation=Name(id='Path', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='compact_threshold_tokens', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='compact_keep_messages', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='model', ctx=Store()), annotation=Name(id='ProviderConfig', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='judge_model', ctx=Store()), annotation=Name(id='ProviderConfig', ctx=Load()), simple=1)"
+    ],
+    "load_config": [
+      "arguments(args=[arg(arg='base_dir', annotation=BinOp(left=Name(id='Path', ctx=Load()), op=BitOr(), right=Constant(value=None)))], defaults=[Constant(value=None)])",
+      "Name(id='LabConfig', ctx=Load())"
+    ]
+  },
+  "memory_store.py": {
+    "estimate_tokens": [
+      "arguments(args=[arg(arg='text', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "UserProfileStore": [
+      "AnnAssign(target=Name(id='root_dir', ctx=Store()), annotation=Name(id='Path', ctx=Load()), simple=1)"
+    ],
+    "UserProfileStore.path_for": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='Path', ctx=Load())"
+    ],
+    "UserProfileStore.read_text": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='str', ctx=Load())"
+    ],
+    "UserProfileStore.write_text": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='content', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='Path', ctx=Load())"
+    ],
+    "UserProfileStore.edit_text": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load())), arg(arg='search_text', annotation=Name(id='str', ctx=Load())), arg(arg='replacement', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='bool', ctx=Load())"
+    ],
+    "UserProfileStore.file_size": [
+      "arguments(args=[arg(arg='self'), arg(arg='user_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ],
+    "extract_profile_updates": [
+      "arguments(args=[arg(arg='message', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='str', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "summarize_messages": [
+      "arguments(args=[arg(arg='messages', annotation=Subscript(value=Name(id='list', ctx=Load()), slice=Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='str', ctx=Load())], ctx=Load()), ctx=Load()), ctx=Load())), arg(arg='max_items', annotation=Name(id='int', ctx=Load()))], defaults=[Constant(value=6)])",
+      "Name(id='str', ctx=Load())"
+    ],
+    "CompactMemoryManager": [
+      "AnnAssign(target=Name(id='threshold_tokens', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='keep_messages', ctx=Store()), annotation=Name(id='int', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='state', ctx=Store()), annotation=Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='object', ctx=Load())], ctx=Load()), ctx=Load())], ctx=Load()), ctx=Load()), value=Call(func=Name(id='field', ctx=Load()), keywords=[keyword(arg='default_factory', value=Name(id='dict', ctx=Load()))]), simple=1)"
+    ],
+    "CompactMemoryManager.append": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load())), arg(arg='role', annotation=Name(id='str', ctx=Load())), arg(arg='content', annotation=Name(id='str', ctx=Load()))])",
+      "Constant(value=None)"
+    ],
+    "CompactMemoryManager.context": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Subscript(value=Name(id='dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='object', ctx=Load())], ctx=Load()), ctx=Load())"
+    ],
+    "CompactMemoryManager.compaction_count": [
+      "arguments(args=[arg(arg='self'), arg(arg='thread_id', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='int', ctx=Load())"
+    ]
+  },
+  "model_provider.py": {
+    "ProviderConfig": [
+      "AnnAssign(target=Name(id='provider', ctx=Store()), annotation=Name(id='str', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='model_name', ctx=Store()), annotation=Name(id='str', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='temperature', ctx=Store()), annotation=Name(id='float', ctx=Load()), simple=1)",
+      "AnnAssign(target=Name(id='api_key', ctx=Store()), annotation=BinOp(left=Name(id='str', ctx=Load()), op=BitOr(), right=Constant(value=None)), value=Constant(value=None), simple=1)",
+      "AnnAssign(target=Name(id='base_url', ctx=Store()), annotation=BinOp(left=Name(id='str', ctx=Load()), op=BitOr(), right=Constant(value=None)), value=Constant(value=None), simple=1)"
+    ],
+    "normalize_provider": [
+      "arguments(args=[arg(arg='value', annotation=Name(id='str', ctx=Load()))])",
+      "Name(id='str', ctx=Load())"
+    ],
+    "build_chat_model": [
+      "arguments(args=[arg(arg='config', annotation=Name(id='ProviderConfig', ctx=Load()))])",
+      null
+    ]
+  }
+}
