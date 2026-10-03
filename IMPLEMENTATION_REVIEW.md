@@ -55,3 +55,9 @@
 - Review: only current confident user assertions authorize tool writes; fabricated correction rejected; thread checkpoints isolated. SDK usage used when supplied; summary overhead estimated and printed separately; semantic judge validation and separate usage added. CLI --live/--judge is explicit; missing live credentials fails rather than silently benchmarking offline. Judge provider/model/key defaults corrected; six factory branches and native OpenRouter default covered.
 - Counterargument: fake models execute the actual graph/tools/middleware but do not test remote service credentials, quotas or semantic quality. Current Python 3.14 dependencies emit Pydantic warnings; tests still pass. Summary/judge cost is separate from main-agent columns.
 - Validation: 60 tests passed including graph tool calls, dynamic prompt, summarization, SDK usage, live CLI with judge, six provider factories and unchanged scaffold contract. No paid remote API calls made.
+
+## Completion stage 2 — Repeated compact summary
+- Implementation: offline summary merges prior structured facts with older messages; prioritizes identity/current fields and keeps JSON valid within summary budget. Old summary is not simply discarded when more than six messages are compacted.
+- Review: test compacts repeatedly, preserves earliest name and accepts latest location correction; question cannot overwrite summary facts.
+- Counterargument: bounded heuristic summaries still lose lower-priority facts or excerpts; small budgets cannot retain everything. Live mode now has model-based summarization for semantic compression.
+- Validation: full 60-test suite passed; two clean offline benchmark runs identical; updated stress result 11784 prompt tokens and 4 compactions, Advanced recall 100%.

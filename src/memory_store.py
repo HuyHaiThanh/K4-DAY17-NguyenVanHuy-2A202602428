@@ -155,7 +155,24 @@ def summarize_messages(messages: list[dict[str, str]], max_items: int = 6) -> st
     Later, you can replace it with an LLM-based summary if desired.
     """
 
-    return '\n'.join(m['content'][:160] for m in messages[-max_items:])
+    facts, excerpts = {}, []
+    for message in messages:
+        content = message['content']
+        if message['role'] == 'system' and content.startswith('Facts: '):
+            header, _, context = content.partition('\nContext: ')
+            try:
+                facts.update(json.loads(header[7:]))
+            except json.JSONDecodeError:
+                pass
+            excerpts.extend(context.split(' | ') if context else [])
+        elif message['role'] == 'user':
+            # Questions should not rewrite facts in a compact summary either.
+            if '?' not in content:
+                facts.update(extract_profile_updates(content))
+            excerpts.append(content[:160])
+    unique = list(dict.fromkeys(excerpts))
+    selected = (unique[:1] + unique[-max(0, max_items - 1):]) if max_items > 1 else unique[:max_items]
+    return 'Facts: ' + json.dumps(facts, ensure_ascii=False, sort_keys=True) + '\nContext: ' + ' | '.join(dict.fromkeys(selected))
 
 
 @dataclass
@@ -186,7 +203,7 @@ class CompactMemoryManager:
             summary = summarize_messages(combined)
             # Reserve a bounded budget for summary; retained messages can themselves exceed threshold.
             limit = max(4, self.threshold_tokens * 4 // 3)
-            state['summary'] = summary[:limit]
+            state['summary'] = bounded_summary(summary, limit)
             state['messages'] = state['messages'][-self.keep_messages:]
             state['compactions'] += 1
 
@@ -201,3 +218,21 @@ class CompactMemoryManager:
     def __post_init__(self):
         if self.threshold_tokens <= 0 or self.keep_messages < 1:
             raise ValueError('Invalid compact settings')
+
+
+def bounded_summary(summary: str, max_chars: int) -> str:
+    """Keep summary JSON valid while bounding context; prefer identity/current facts."""
+    header, _, context = summary.partition('\nContext: ')
+    facts = json.loads(header[7:]) if header.startswith('Facts: ') else {}
+    kept = {}
+    priority = ['name', 'location', 'profession', 'response_style']
+    for key in sorted(facts, key=lambda k: (priority.index(k) if k in priority else len(priority), k)):
+        candidate = dict(kept, **{key: facts[key]})
+        if len('Facts: ' + json.dumps(candidate, ensure_ascii=False, sort_keys=True)) <= max_chars:
+            kept = candidate
+    prefix = 'Facts: ' + json.dumps(kept, ensure_ascii=False, sort_keys=True)
+    if len(prefix) > max_chars:
+        return ''
+    suffix = '\nContext: '
+    remaining = max_chars - len(prefix) - len(suffix)
+    return prefix + (suffix + context[:remaining] if remaining > 0 else '')
