@@ -1,12 +1,8 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import Any
-
 from config import LabConfig, load_config
-from memory_store import estimate_tokens
+from memory_store import estimate_tokens, extract_profile_updates
 from model_provider import build_chat_model
-
+from offline_response import answer_from_facts
 
 @dataclass
 class SessionState:
@@ -16,60 +12,46 @@ class SessionState:
 
 
 class BaselineAgent:
-    """Student TODO: implement Agent A.
-
-    Requirements:
-    - Within-session memory only
-    - No persistent `User.md`
-    - Should forget long-term facts across new threads
-    """
-
-    def __init__(self, config: LabConfig | None = None, force_offline: bool = False) -> None:
+    def __init__(self, config: LabConfig | None = None, force_offline: bool = False):
         self.config = config or load_config()
-        self.force_offline = force_offline
-        self.sessions: dict[str, SessionState] = {}
-
-        # TODO: optionally initialize a real LangChain/LangGraph agent when dependencies exist.
-        self.langchain_agent = None
-
-    def reply(self, user_id: str, thread_id: str, message: str) -> dict[str, Any]:
-        """Student TODO: return the agent response and token accounting.
-
-        Pseudocode:
-        - If a live agent exists, call the live path.
-        - Otherwise use a deterministic offline path.
-        """
-
-        raise NotImplementedError
-
-    def token_usage(self, thread_id: str) -> int:
-        # TODO: return cumulative agent token count for one thread.
-        raise NotImplementedError
-
-    def prompt_token_usage(self, thread_id: str) -> int:
-        # TODO: estimate how much prompt context this baseline kept processing.
-        raise NotImplementedError
-
-    def compaction_count(self, thread_id: str) -> int:
-        # Baseline has no compact memory.
-        return 0
-
-    def _reply_offline(self, thread_id: str, message: str) -> dict[str, Any]:
-        """Student TODO: implement a simple offline behavior.
-
-        Suggested behavior:
-        - Store the new user message in the session
-        - Generate a short deterministic reply
-        - Update token counts
-        - Never remember facts across different thread ids
-        """
-
-        raise NotImplementedError
+        self.sessions = {}
+        self.owners = {}
+        self.langchain_agent = None if force_offline else self._maybe_build_langchain_agent()
 
     def _maybe_build_langchain_agent(self):
-        """Student TODO: optionally wire `create_agent` + `InMemorySaver` here.
+        # Live mode is explicit through force_offline=False; errors are not silently hidden.
+        return build_chat_model(self.config.model)
 
-        Use `build_chat_model(self.config.model)` so the baseline can run with any supported provider.
-        """
+    def reply(self, user_id: str, thread_id: str, message: str) -> dict:
+        if thread_id in self.owners and self.owners[thread_id] != user_id:
+            raise ValueError('Thread belongs to another user')
+        self.owners[thread_id] = user_id
+        return self._reply_offline(thread_id, message)
 
-        raise NotImplementedError
+    def _reply_offline(self, thread_id: str, message: str) -> dict:
+        state = self.sessions.setdefault(thread_id, SessionState())
+        state.messages.append({'role': 'user', 'content': message})
+        prompt_tokens = sum(estimate_tokens(m['content']) for m in state.messages)
+        if self.langchain_agent is None:
+            facts = {}
+            for m in state.messages:
+                if m['role'] == 'user':
+                    facts.update(extract_profile_updates(m['content']))
+            answer = answer_from_facts(message, facts)
+        else:
+            result = self.langchain_agent.invoke([(m['role'], m['content']) for m in state.messages])
+            answer = result.content if isinstance(result.content, str) else str(result.content)
+        state.messages.append({'role': 'assistant', 'content': answer})
+        tokens = estimate_tokens(answer)
+        state.token_usage += tokens
+        state.prompt_tokens_processed += prompt_tokens
+        return {'answer': answer, 'agent_tokens': tokens, 'prompt_tokens': prompt_tokens}
+
+    def token_usage(self, thread_id: str) -> int:
+        return self.sessions.get(thread_id, SessionState()).token_usage
+
+    def prompt_token_usage(self, thread_id: str) -> int:
+        return self.sessions.get(thread_id, SessionState()).prompt_tokens_processed
+
+    def compaction_count(self, thread_id: str) -> int:
+        return 0
