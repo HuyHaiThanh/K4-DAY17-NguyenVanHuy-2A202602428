@@ -61,3 +61,8 @@
 - Review: test compacts repeatedly, preserves earliest name and accepts latest location correction; question cannot overwrite summary facts.
 - Counterargument: bounded heuristic summaries still lose lower-priority facts or excerpts; small budgets cannot retain everything. Live mode now has model-based summarization for semantic compression.
 - Validation: full 60-test suite passed; two clean offline benchmark runs identical; updated stress result 11784 prompt tokens and 4 compactions, Advanced recall 100%.
+
+## Completion stage 3 — Final submission audit
+- Review: COMPLETION.md maps all nine Guide steps to implementation/test evidence; REPORT and STEP8/9 updated to current metrics (11784 prompt, 4 compactions, 47.2% savings), no stale claim of missing graph/judge. Requirements records tested direct package versions; env example contains no credentials.
+- Counterargument: no remote credentials available, so graph integration is tested with fake models, not remote services; confidence/summaries are bounded heuristic policies and production concurrency remains outside lab scope. Explicitly documented.
+- Validation: 60 passing tests, compiled sources, diff whitespace check, two identical clean offline benchmarks; original scaffold declarations remain covered. Final push targets origin/main.

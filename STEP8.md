@@ -16,7 +16,7 @@ Prompt tokens processed của Baseline là 14.742, Advanced là 21.582, tăng kh
 
 Baseline giữ toàn bộ lịch sử và xử lý lại context tích lũy mỗi lượt. Advanced nén phần lịch sử cũ thành summary có giới hạn, giữ các message gần nhất cùng hồ sơ người dùng. Cách này giảm lượng nội dung phải xử lý lặp lại khi cuộc hội thoại dài.
 
-Trong Long-Context Stress Benchmark, Advanced compact 3 lần. Prompt tokens processed giảm từ 22.300 của Baseline xuống 11.043 của Advanced, tức khoảng 50,5%, trong khi Advanced vẫn đạt 100% recall các facts được kiểm tra. Agent tokens only tăng từ 281 lên 312: lợi ích chính nằm ở prompt load, không phải độ dài câu trả lời.
+Trong Long-Context Stress Benchmark, Advanced compact 4 lần. Prompt tokens processed giảm từ 22.300 của Baseline xuống 11.784 của Advanced, tức khoảng 47,2%, trong khi Advanced vẫn đạt 100% recall các facts được kiểm tra. Agent tokens only tăng từ 281 lên 312: lợi ích chính nằm ở prompt load, không phải độ dài câu trả lời.
 
 Kết quả này chưa chứng minh summary giữ được mọi chi tiết cũ: các câu recall của dataset chủ yếu kiểm tra profile. Summary trích đoạn có thể làm mất nội dung tạm thời; đây là đánh đổi giữa chi phí token và độ đầy đủ của ngữ cảnh.
 

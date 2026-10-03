@@ -185,4 +185,6 @@ Track này được thiết kế để các bạn không chỉ “dùng agent”
 
 ## Bản triển khai đã hoàn thành
 
-src/ đã triển khai offline agents, persistent profile, compact, benchmark và test. Xem [REPORT.md](REPORT.md) để chạy trên Windows, đọc kết quả và giới hạn; [IMPLEMENTATION_REVIEW.md](IMPLEMENTATION_REVIEW.md) ghi review/phản biện theo giai đoạn. Các đoạn mô tả scaffold phía trên là đề bài gốc.
+src/ đã triển khai offline/live LangGraph agents, profile, compact, confidence/decay, benchmark và test. Xem [REPORT.md](REPORT.md) để chạy trên Windows, đọc kết quả và giới hạn; [IMPLEMENTATION_REVIEW.md](IMPLEMENTATION_REVIEW.md) ghi review/phản biện theo giai đoạn. Các đoạn mô tả scaffold phía trên là đề bài gốc.
+
+Bảng đối chiếu đủ chín bước và phạm vi kiểm chứng: [COMPLETION.md](COMPLETION.md). Chạy toàn bộ test bằng `python -m pytest src -v`; live benchmark dùng `python src/benchmark.py --live --judge` khi đã cấu hình credentials.

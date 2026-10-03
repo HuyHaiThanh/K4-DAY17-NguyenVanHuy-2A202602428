@@ -19,11 +19,11 @@ Sau “Mình đang ở Huế”, câu “Có lẽ mình đang ở Hà Nội” k
 
 Test ablation dùng cùng input với ngưỡng 0.8 và 0.4: chính sách 0.8 giữ Huế; chính sách dễ dãi 0.4 ghi Hà Nội từ câu chưa chắc chắn. Đây là bằng chứng gate có tác động đến ghi memory, không chỉ thêm metadata. Test ngưỡng biên và ngưỡng không hợp lệ; test preference “có ví dụ” để không nhầm với câu giả định.
 
-Chạy: python -m pytest src -v. Hiện 37 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
+Chạy: python -m pytest src -v. Hiện 60 test pass, gồm cả contract scaffold và test benchmark đầy đủ.
 
 ## Tác động và phản biện
 
-Gate giảm nguy cơ profile bị nhiễm fact không chắc chắn, giúp giữ recall đúng khi có input gây nhiễu. Các dataset gốc vẫn đạt 100% recall Advanced; stress prompt tokens là 11.043 so với 22.300 Baseline, giảm khoảng 50.5%, compact 3 lần. Gate chạy bằng quy tắc local, không gọi LLM bổ sung. Không quy mức tiết kiệm prompt này cho gate: lợi ích đó chủ yếu từ compact.
+Gate giảm nguy cơ profile bị nhiễm fact không chắc chắn, giúp giữ recall đúng khi có input gây nhiễu. Các dataset gốc vẫn đạt 100% recall Advanced; stress prompt tokens là 11.784 so với 22.300 Baseline, giảm khoảng 47,2%, compact 4 lần. Gate chạy bằng quy tắc local, không gọi LLM bổ sung. Không quy mức tiết kiệm prompt này cho gate: lợi ích đó chủ yếu từ compact.
 
 Score là trọng số heuristic, không phải xác suất được hiệu chuẩn. Gate có thể từ chối fact đúng nhưng diễn đạt dè dặt, hoặc chấp nhận fact sai được khẳng định rõ ràng. Câu chứa lẫn evidence mâu thuẫn được xử lý thận trọng ở phạm vi câu. Chưa có xác minh ngoài ngôn ngữ hoặc confidence học từ dữ liệu.
 
@@ -33,7 +33,7 @@ Score là trọng số heuristic, không phải xác suất được hiệu chu�
 
 ## Đối chiếu Guide
 
-Bước 1–7: môi trường, cấu hình, memory, hai agent, hai benchmark và test đã hoàn thành offline. Bước 8: STEP8.md phân tích số liệu. Bước 9: confidence gate đã tích hợp và có test ablation/correction/restart và memory decay với thời gian giả lập. Live API và LangGraph middleware vẫn là phần mở rộng chưa kiểm chứng.
+Bước 1–7: môi trường, cấu hình, memory, hai agent, hai benchmark và test đã hoàn thành offline. Bước 8: STEP8.md phân tích số liệu. Bước 9: confidence gate đã tích hợp và có test ablation/correction/restart và memory decay với thời gian giả lập. Live LangGraph middleware/tools/checkpoints và CLI judge đã triển khai, kiểm thử bằng fake models trên graph thật. API remote chưa được gọi vì chưa có credentials.
 
 ## Memory decay đã triển khai
 

@@ -1,47 +1,58 @@
-# Báo cáo Day 17 — Memory Systems for AI Agent
+# Báo cáo hoàn thành Day 17 — Memory Systems for AI Agent
 
-## Chạy và kiểm chứng
+## Chạy trên Windows
 
-Từ root: `.\.venv\Scripts\python.exe -m pytest src/test_agents.py -v` và `.\.venv\Scripts\python.exe src/benchmark.py`. Benchmark luôn offline, không cần API key, mỗi suite dùng state tạm sạch. Kết quả đầy đủ: benchmark_results.txt.
+Từ root repo:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m pytest src -v
+python src/benchmark.py
+python src/benchmark_decay.py
+```
+
+Benchmark mặc định offline, không cần API key. Chế độ live dùng cấu hình .env (mẫu .env.example):
+
+```powershell
+python src/benchmark.py --live
+python src/benchmark.py --live --judge
+```
+
+Live gọi provider được cấu hình; --judge gọi thêm model judge. Nếu thiếu credentials remote, --live báo lỗi thay vì âm thầm chạy offline. Constructor thông thường vẫn fallback offline khi thiếu key; force_offline=True luôn giữ offline. Ollama không cần API key nhưng cần server đang chạy.
 
 ## Kiến trúc
 
-Baseline giữ messages theo thread và trích facts từ chính lịch sử đó. Advanced bổ sung User.md theo user, keyed updates thay fact cũ, hợp nhất interests, summary giới hạn và recent messages. Cả hai dùng chung extraction và response để so sánh công bằng. Thread owner check chống trộn user. Profile được ghi UTF-8 bằng file tạm và replace, đường dẫn giữ profiles/<user>/User.md cho ID an toàn; ID không an toàn dùng namespace hash riêng và vẫn đọc được hồ sơ hash của bản trước.
+Baseline nhớ theo thread, không lưu User.md. Advanced kết hợp lịch sử thread, User.md, compact summary, confidence gate và decay. Contract gồm chữ ký hàm, dataclass fields và AgentContext được đối chiếu tự động với scaffold gốc. Safe user ID dùng profiles/<user>/User.md; ID không an toàn có namespace hash, hỗ trợ đọc hồ sơ hash cũ.
 
-Ngưỡng mặc định 1000 token, giữ 4 messages. Summary giới hạn khoảng 1/3 ngưỡng. Recent messages quá dài vẫn có thể vượt ngưỡng; đây là trigger nén chứ không phải hard context limit.
+Offline dùng extraction/response deterministic chung cho hai agent. Summary giữ facts có cấu trúc, hợp nhất summary cũ và correction, cùng excerpts giới hạn. Live dùng create_agent của LangChain/LangGraph, InMemorySaver, dynamic profile prompt, tools read/write/edit và SummarizationMiddleware gọi model. User ID được inject từ runtime context, không lấy từ tham số do model tự chọn. Tool chỉ được ghi/correct facts được confidence gate xác nhận trong chính user message hiện tại.
 
-## Kết quả
+Provider factory hỗ trợ openai/custom/gemini/anthropic/ollama/openrouter; OpenRouter mặc định dùng SDK native, explicit base URL dùng OpenAI-compatible client. Judge có model/key/base URL riêng và mặc định theo provider tương thích.
+
+## Kết quả offline cuối
 
 | Suite | Agent | Output tokens | Prompt tokens | Recall | Growth bytes | Compactions |
 |---|---|---:|---:|---:|---:|---:|
 | Standard | Baseline | 1521 | 14742 | 3,6% | 0 | 0 |
 | Standard | Advanced | 1664 | 21582 | 100% | 957 | 0 |
 | Stress | Baseline | 281 | 22300 | 0% | 0 | 0 |
-| Stress | Advanced | 312 | 11043 | 100% | 647 | 3 |
+| Stress | Advanced | 312 | 11784 | 100% | 647 | 4 |
 
-Advanced tăng recall nhờ hồ sơ bền vững. Standard không compact và prompt cost tăng khoảng 46,4% vì mang profile mỗi lượt. Stress compact 3 lần, giảm prompt cost khoảng 50,5%. Output tokens không giảm; lợi ích nằm ở giảm lịch sử xử lý lặp lại. Profile keyed updates hạn chế tăng trưởng do facts lặp.
+Token offline là ceil(len(text.strip())/4). Cả training và recall được tính; recall hỏi ngay sau từng conversation, thread mới riêng mỗi question. Score 0/0,5/1 khi không khớp/khớp một phần/khớp tất cả expected_contains. Quality offline là proxy recall/concision. Growth gồm User.md và sidecar decay: Standard 287 + 670 byte; Stress 207 + 440 byte. Metadata không gửi vào prompt.
 
-## Phương pháp
+Advanced tăng recall qua persistent memory. Standard thêm khoảng 46,4% prompt cost vì mang profile mỗi lượt. Stress compact 4 lần, giảm prompt cost khoảng 47,2%. Summary mới giữ facts tốt hơn nên stress metrics khác bản trích đoạn trước đó. Baseline 3,6% đến từ dữ kiện có sẵn trong một recall input, không chứng minh nhớ dài hạn.
 
-Tokens ước lượng bằng ceil(len(text.strip())/4), không phải usage tính phí. Output chỉ tính assistant response. Prompt tính lịch sử trước sinh câu trả lời, thêm profile và summary với Advanced. Training và recall đều nằm trong tổng. Recall hỏi ngay sau từng conversation, thread mới riêng cho từng question. Score 0/0,5/1 tương ứng không khớp/khớp một phần/khớp tất cả expected_contains, không phân biệt hoa thường. Quality là recall nhân hệ số ngắn gọn, không phải judge độc lập.
+Live accounting lấy usage_metadata khi SDK trả về, fallback estimator khi không có. Main-agent columns gồm các model calls trong agent/tool loop; summary overhead được in riêng bằng ước lượng. Judge score được validate [0,1]; calls và usage được in riêng, không nhập vào main-agent totals.
 
-## Phản biện và giới hạn
+## Bonus bước 9
 
-- Baseline có 3,6% vì một recall question chứa tên ngay trong input. Điều đó không chứng minh nhớ dài hạn. Substring scoring có thể thưởng echo, và có thể sai với phủ định. Test memory độc lập kiểm tra baseline quên và Advanced nhớ sau restart.
-- 100% trên dataset không chứng minh hiểu mọi câu tiếng Việt hay tuân thủ chính xác style 3 bullet. Offline đo memory plumbing.
-- Summary là trích đoạn giới hạn, có thể mất chi tiết tạm thời. Recall dataset chủ yếu kiểm tra profile, không đủ chứng minh nhớ mọi chủ đề news. Tin tức trong input chỉ được xem là dữ liệu test, chưa xác minh sự kiện.
-- Regex extraction có test correction và nhiễu nhưng chưa có confidence hiệu chuẩn. Interests hợp nhất chưa hỗ trợ xóa sở thích. Đã thêm confidence gate bằng quy tắc (PROFILE_CONFIDENCE_THRESHOLD=0.8), có test ablation; score chưa được hiệu chuẩn. Đã triển khai memory decay không xóa dữ liệu gốc; còn thiếu transaction chung giữa profile/metadata và đồng bộ nhiều tiến trình.
-- Live dùng direct chat invocation với factory sáu provider, bật force_offline=False khi có credentials (Ollama không cần key); thiếu credentials remote thì fallback offline. Chưa triển khai LangGraph tool/middleware hoặc LLM summary. Không gọi API thật và live token vẫn là ước lượng. Model mặc định có thể thay bằng env.
-- Env: LLM_PROVIDER, LLM_MODEL, LLM_TEMPERATURE, JUDGE_PROVIDER, JUDGE_MODEL, COMPACT_THRESHOLD_TOKENS, COMPACT_KEEP_MESSAGES, cùng API_KEY/BASE_URL tương ứng provider. Judge config có sẵn nhưng offline không dùng judge.
+Confidence gate trước ghi User.md: ngưỡng 0.8; assertion 0.95, uncertainty 0.4, hypothetical/third-party 0.1, question 0 (luôn từ chối). Đây là policy weights chưa được hiệu chuẩn. Test ablation 0.8 so với 0.4 cho thấy gate ngăn uncertain location ghi đè fact đã xác nhận.
 
-## Tương thích scaffold
+Decay lưu value/updated_at/confirmations ở sidecar. Half-life mặc định 30 ngày, min priority 0.25, reinforcement có giới hạn theo confirmations. Fact cũ bị loại khỏi persistent context, không xóa khỏi profile. Name được bảo vệ; unknown-age legacy/manual facts không bị gán ngày hết hạn giả. Xác nhận lại làm mới tuổi; correction reset count. Test clock giả lập và demo cho thấy profile context 20 xuống 8 token sau 90 ngày, rồi 12 khi xác nhận lại location. Entity fields và correction/noise filtering cũng đã triển khai.
 
-Đã khôi phục AgentContext, force_offline, future annotations, chữ ký hàm, dataclass fields và thứ tự khai báo từ commit đề bài dc0e2da. Test contract dùng snapshot khai báo gốc, không cần Git khi chạy. Không có bộ test ẩn của người chấm nên chỉ cam kết tương thích các khai báo được công bố, không cam kết pass mọi hành vi chưa được mô tả.
+## Kiểm chứng và giới hạn
 
-## Review cuối
+60 test pass, gồm core memory, confidence, decay, repeated compact, scaffold contract, sáu provider factories, actual graph checkpoints/tools/dynamic prompt/LLM middleware với fake models, SDK usage và live CLI có judge. Hai lần offline benchmark state sạch cho kết quả giống nhau.
 
-37 test hành vi và contract pass trên Python 3.14.7, gồm profile, compact nhiều lần, same-thread recall, fresh-thread forgetting, restart, user isolation, correction/noise và hai dataset. Hai lần benchmark sạch cho kết quả giống nhau. Không hard-code tên DũngCT trong câu trả lời; test dùng tên Lan. .env, state, .venv và cache được bỏ qua Git.
+Chưa có credentials remote được cấu hình, nên không gọi API trả phí và không tuyên bố có remote-provider smoke test. Fake models chạy graph thật nhưng không chứng minh chất lượng ngữ nghĩa của LLM thực. Python 3.14.7 hiện phát sinh warning Pydantic từ dependency; không có test failure. requirements.txt ghi phiên bản trực tiếp đã kiểm thử, không phải lock toàn bộ dependency bắc cầu.
 
-## Memory decay
-
-DecayingProfile lưu updated_at/confirmations/value ở sidecar, dùng half-life mặc định 30 ngày và ngưỡng priority 0.25. Các field dưới ngưỡng ngừng được đưa vào profile context; name và hồ sơ cũ không rõ tuổi được giữ. Xác nhận lại làm mới tuổi; correction reset reinforcement của giá trị cũ. Confidence gate chạy trước cả ghi fact lẫn cập nhật tuổi. Xem STEP9.md và decay_results.txt cho công thức, demo và trade-off. Memory growth trong bảng tính cả profile và sidecar; metadata không được gửi vào prompt. Benchmark gốc diễn ra nhanh nên chưa có facts hết tuổi; hiệu quả decay được kiểm tra riêng bằng clock giả lập.
+Regex/heuristic summary có thể bỏ sót hoặc hiểu sai cách diễn đạt mới; summary nhỏ vẫn mất thông tin. Confidence không xác minh sự thật. Decay có thể bỏ fact vẫn đúng và không xóa lịch sử đang diễn ra. User.md/sidecar replace riêng, chưa có transaction chung hoặc lock đa tiến trình. Live InMemorySaver lưu trong RAM, không phải durable checkpoint database. Những cải tiến production này không phải yêu cầu bài lab. Điểm số/test ẩn do người chấm quyết định.

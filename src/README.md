@@ -1,3 +1,5 @@
 # Implemented lab
 
-Offline agents, persistent profiles, bounded heuristic compaction and both benchmark suites are implemented. From root run `python src/benchmark.py` and `python -m pytest src/test_agents.py -v`. See ../REPORT.md for Windows commands and limitations.
+All nine Guide steps are implemented: offline/live agents, LangGraph checkpoints and guarded tools, dynamic profile prompt, model-based live summarization, confidence gate, decay, two benchmarks and optional semantic judge.
+
+From root: python -m pytest src -v; python src/benchmark.py; python src/benchmark_decay.py. Live: python src/benchmark.py --live --judge with credentials. See ../REPORT.md and ../COMPLETION.md for evidence and verification limits.
