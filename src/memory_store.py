@@ -52,6 +52,8 @@ class UserProfileStore:
 
     def upsert_fact(self, user_id: str, key: str, value: str) -> None:
         facts = self.facts(user_id)
+        if key == 'interests' and key in facts:
+            value = ', '.join(dict.fromkeys(facts[key].split(', ') + value.split(', ')))
         facts[key] = value
         text = '# User profile\n\n' + '\n'.join(f'- {k}: {json.dumps(v, ensure_ascii=False)}' for k, v in sorted(facts.items())) + '\n'
         self.write_text(user_id, text)
@@ -60,11 +62,11 @@ class UserProfileStore:
 def extract_profile_updates(message: str) -> dict[str, str]:
     facts = {}
     # Extract assertions clause by clause, excluding questions and explicit negations.
-    clauses = re.split(r'[.!?;\n]|,| nhưng | còn | và | chứ ', message, flags=re.I)
+    clauses = re.split(r'[.!?;\n]|,| nhưng | chứ ', message, flags=re.I)
     for clause in clauses:
         clause = clause.strip()
         low = clause.lower()
-        if any(x in low for x in ('không còn', 'đừng', 'nếu ', 'chỉ là', 'câu đùa', 'không phải', 'lúc đầu', 'trước đó', 'từng ', 'nhắc lại', 'tên gì', 'ở đâu', 'nghề gì')):
+        if any(x in low for x in ('không còn', 'đừng', 'nếu ', 'chỉ là', 'câu đùa', 'không phải', 'lúc đầu', 'trước đó', 'từng ', 'nhắc lại', 'tên gì', 'tên mình là gì', 'ở đâu', 'nghề gì', 'đùa')):
             continue
         match = re.search(r'(?:mình tên(?: là)?|tên mình là|tên)\s+(DũngCT Stress|DũngCT|[^:]+)', clause, re.I)
         if match and ('mình tên' in low or 'tên mình là' in low or low.startswith('tên ')):
@@ -84,10 +86,14 @@ def extract_profile_updates(message: str) -> dict[str, str]:
         if any(x in low for x in ('mình thích', 'mình đang quan tâm', 'mối quan tâm')):
             interests = [x for x in ('Python', 'AI', 'MLOps') if x.lower() in low]
             if interests:
-                facts['interests'] = ', '.join(interests)
+                facts['interests'] = ', '.join(dict.fromkeys(facts.get('interests', '').split(', ') + interests)).strip(', ')
         if any(x in low for x in ('trả lời', 'style', 'giải thích')) and any(x in low for x in ('mình muốn', 'mình thích', 'hãy', 'vẫn giữ')):
             if any(x in low for x in ('ngắn', 'gọn', 'bullet')):
                 facts['response_style'] = 'ngắn gọn, ' + ('3 bullet, ' if '3 bullet' in low else 'có bullet, ') + 'có ví dụ thực tế'
+    if any(x in message.lower() for x in ('mình thích', 'mình đang quan tâm')):
+        interests = [x for x in ('Python', 'AI', 'MLOps') if x.lower() in message.lower()]
+        if interests:
+            facts['interests'] = ', '.join(interests)
     return facts
 
 

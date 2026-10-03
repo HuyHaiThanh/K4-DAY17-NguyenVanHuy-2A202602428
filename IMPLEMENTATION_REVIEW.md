@@ -14,3 +14,9 @@
 - Review: both agents share extraction and response logic, so baseline is capable within a thread. Advanced persists facts and includes profile, summary and recent messages in accounting. Thread owner checks prevent cross-user reuse.
 - Counterargument: offline responses measure memory plumbing, not LLM intelligence or style compliance. Live uses direct chat invocation, not optional LangGraph tooling; token totals remain heuristic estimates. No live API calls were made.
 - Validation: same-thread baseline recall, fresh-thread forgetting, advanced recall after restart passed.
+
+## Stage 4 — Benchmark and tests
+- Review: fresh recall thread per question; immediate evaluation after each conversation; temporary clean state; counters summed once per thread; both training and recall costs included.
+- Counterargument: substring recall can reward echoed facts and quality is not independent. Baseline may obtain a small nonzero score from facts explicitly embedded in questions. We retain the supplied scoring protocol and disclose it rather than forcing baseline to zero.
+- Failures found and fixed: question text overwrote name; joke overwrote profession; comma-separated interests lost AI; later interests replaced earlier ones.
+- Validation: 7 behavioral tests passed, including both full datasets, restart, user isolation, correction/noise and long-context savings.

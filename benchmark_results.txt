@@ -1,0 +1,14 @@
+
+Standard Benchmark
+| Agent    |   Agent tokens only |   Prompt tokens processed | Cross-session recall   | Response quality   |   Memory growth (bytes) |   Compactions |
+|----------|---------------------|---------------------------|------------------------|--------------------|-------------------------|---------------|
+| Baseline |                1521 |                     14742 | 3.6%                   | 3.6%               |                       0 |             0 |
+| Advanced |                1664 |                     21582 | 100.0%                 | 100.0%             |                     287 |             0 |
+
+Long-Context Stress Benchmark
+| Agent    |   Agent tokens only |   Prompt tokens processed | Cross-session recall   | Response quality   |   Memory growth (bytes) |   Compactions |
+|----------|---------------------|---------------------------|------------------------|--------------------|-------------------------|---------------|
+| Baseline |                 281 |                     22300 | 0.0%                   | 0.0%               |                       0 |             0 |
+| Advanced |                 306 |                     11019 | 100.0%                 | 100.0%             |                     207 |             3 |
+
+Offline deterministic benchmark; tokens are estimates; quality is a recall/concision proxy. Training and recall turns are both included.
